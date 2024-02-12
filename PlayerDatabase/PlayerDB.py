@@ -5,7 +5,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 
 
-# database object
+# database object to interface Photon Tag Software with codename database
 class PlayerDB:
     # constructor
     def __init__(self):
@@ -38,8 +38,8 @@ class PlayerDB:
             return {'needsAdding': False, 'playerName': self.data[1][0].get('codename')}
 
     # add new player with unique ID to db
-    # ONLY CALL IF getPlayer REQUESTS IT, can error as id's are forced unique / primary key
-    # returns player name as string to indicate succesful adding to database
+    # ONLY CALL IF getPlayer REQUESTS IT, can error as ids are forced unique / primary key
+    # returns player name as string to indicate successful adding to database
     def addPlayer(self, playerId: int, playerName: str) -> str:
         # don't reattempt adding to db if error occurs
         check = True
@@ -55,10 +55,8 @@ class PlayerDB:
         if check:
             # check that player is in database
             self.data, self.count = self.supabase.table('player').select('*').eq('id', playerId).execute()
-            if not self.data[1]:
-                # LOOP POINT? Retry adding to database
-                return self.addPlayer(playerId, playerName)
-            else:
-                return self.data[1][0].get('codename')
+            if self.data[1]:
+                return self.data[1][0].get('codename')# return sucessfully retrieved codename if addition worked
 
+        # unsuccessful addition to database
         return 'ERROR OCCURRED'
