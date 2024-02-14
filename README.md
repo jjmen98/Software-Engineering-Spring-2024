@@ -3,13 +3,13 @@
 Hello!
 
 ## Team 16 Members
-| GitHub       | Real Name        |
-|--------------|------------------|
-| @sanpdy      | Sankalp Pandey   |
-| @jjmen98     | Jonathan Mendez  |
-| @amwells-git | Alexander Wells  |
-| @bmwodka     | Benjamin Wodka   |
-| @recolaa     | Haden Fowler     |
-| @GabeKincade | Gabriel Kincade  |
-| @TheGreatestt| Brad Daugherty   |
 
+| GitHub        | Real Name       |
+| ------------- | --------------- |
+| @sanpdy       | Sankalp Pandey  |
+| @jjmen98      | Jonathan Mendez |
+| @amwells-git  | Alexander Wells |
+| @bmwodka      | Benjamin Wodka  |
+| @recolaa      | Haden Fowler    |
+| @GabeKincade  | Gabriel Kincade |
+| @TheGreatestt | Brad Daugherty  |
