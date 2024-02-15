@@ -150,7 +150,6 @@ class MainWindow(QMainWindow):
                     try:
                         player_id = int(player_id_text)
                         codename = codename_input.text()
-                        # Example table name is 'players'
                         self.supabase_client.table('player').insert({'id': player_id, 'codename': codename}).execute()
                     except ValueError:
                         print("Player ID must be an integer.")
