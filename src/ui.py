@@ -1,3 +1,4 @@
+# main_window.py
 import sys
 import socket
 import supabase
@@ -5,6 +6,7 @@ import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QMenuBar, QMenu, QSplashScreen
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap
+from Server import UDPServer
 
 class Player:
     def __init__(self, player_id, codename, equipment_id):
@@ -67,8 +69,7 @@ class MainWindow(QMainWindow):
         self.red_eqid_header.setGeometry(260, label_y_offset, 50, 20)
         self.red_eqid_header.setStyleSheet("color: white; background-color: transparent;")
 
-
-        input_boxes_start_y = label_y_offset - 35 # Y offset for input boxes, adding a gap
+        input_boxes_start_y = label_y_offset - 35  # Y offset for input boxes, adding a gap
         self.players_red = []
         for i in range(15):
             # Positioning labels and input boxes with spacing
@@ -150,7 +151,7 @@ class MainWindow(QMainWindow):
         self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px;")
         self.save_button.clicked.connect(self.save_data_to_supabase)
 
-        self.setup_udp_sockets()
+        UDPServer.create_udp_socket(self,7501)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -208,11 +209,10 @@ class MainWindow(QMainWindow):
     def broadcast_equipment_id(self, equipment_id):
         # Send the equipment ID over UDP to localhost for local testing
         message = str(equipment_id).encode('utf-8')
-        self.udp_socket.sendto(message, ('127.0.0.1', 7500))
+        UDPServer.transmit_message(message, ('127.0.0.1', 7500))
 
     def setup_udp_sockets(self):
-        self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        UDPServer.udp_socket = UDPServer(transmit_port=7500, receive_port=7501)
 
     def save_data_to_supabase(self):
         # Convert input data to Player objects and store them in lists
@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
                     try:
                         player = Player(int(player_id_text), codename_text, int(equipment_id_text))
                         self.players_green_objects.append(player)
-                        self.broadcast_equipment_id(player.equipment_id)
+                        UDPServer.broadcast_equipment_id(player.equipment_id)
                     except ValueError:
                         print("Player ID and Equipment ID must be integers.")
 
@@ -257,7 +257,6 @@ class MainWindow(QMainWindow):
         for player in self.players_red_objects + self.players_green_objects:
             self.supabase_client.table('player').insert(player.to_dict()).execute()
 
-    
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     splash_pix = QPixmap('logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
