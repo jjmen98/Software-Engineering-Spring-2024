@@ -1,14 +1,29 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu
-from PyQt6.QtCore import Qt
+import socket
 import supabase
+import time
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QMenuBar, QMenu, QSplashScreen
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QPixmap
 
+class Player:
+    def __init__(self, player_id, codename, equipment_id):
+        self.player_id = player_id
+        self.codename = codename
+        self.equipment_id = equipment_id 
+
+    def to_dict(self):
+        # This method returns data for database insertion, so we exclude equipment_id
+        return {
+            'id': self.player_id,
+            'codename': self.codename
+        }
 
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super().__init__()
-        self.supabase_client = supabase.create_client("https://blzwcpdxyfmqngexhskf.supabase.co",
-                                                      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsendjcGR4eWZtcW5nZXhoc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcyNTEyMTMsImV4cCI6MjAyMjgyNzIxM30.Y78DCDzwlRNW8MVQiVJ4itxl9NdjV99PPa7Q9hh_daI")
+        self.supabase_client = supabase.create_client("https://blzwcpdxyfmqngexhskf.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsendjcGR4eWZtcW5nZXhoc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcyNTEyMTMsImV4cCI6MjAyMjgyNzIxM30.Y78DCDzwlRNW8MVQiVJ4itxl9NdjV99PPa7Q9hh_daI")
 
         self.setWindowTitle("Photon")
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
@@ -36,53 +51,86 @@ class MainWindow(QMainWindow):
 
         self.frame = QFrame(self.centralwidget)
         self.frame.setGeometry(60, 40, 331, 376)
-        self.frame.setStyleSheet(
-            "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
-
-        self.frame = QFrame(self.centralwidget)
-        self.frame.setGeometry(60, 40, 331, 376)
         self.frame.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
 
+        # Adjusted Column Labels for Red Team
+        label_y_offset = 35  # Starting Y offset for column labels
+        self.red_id_header = QLabel("ID", self.frame)
+        self.red_id_header.setGeometry(40, label_y_offset, 50, 20)
+        self.red_id_header.setStyleSheet("color: white; background-color: transparent;")
+
+        self.red_codename_header = QLabel("Codename", self.frame)
+        self.red_codename_header.setGeometry(100, label_y_offset, 150, 20)
+        self.red_codename_header.setStyleSheet("color: white; background-color: transparent;")
+
+        self.red_eqid_header = QLabel("Eq. ID", self.frame)
+        self.red_eqid_header.setGeometry(260, label_y_offset, 50, 20)
+        self.red_eqid_header.setStyleSheet("color: white; background-color: transparent;")
+
+
+        input_boxes_start_y = label_y_offset - 35 # Y offset for input boxes, adding a gap
         self.players_red = []
         for i in range(15):
+            # Positioning labels and input boxes with spacing
             label = QLabel(self.frame)
-            label.setGeometry(10, 25 * i, 20, 20)
+            label.setGeometry(10, input_boxes_start_y + (25 * i), 20, 20)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setStyleSheet("color: white; background-color: transparent;")
             label.setText(str(i+1))
 
             id_input = QLineEdit(self.frame)
-            id_input.setGeometry(40, 25 * i, 50, 20)
+            id_input.setGeometry(40, input_boxes_start_y + (25 * i), 50, 20)
             id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
 
             codename_input = QLineEdit(self.frame)
-            codename_input.setGeometry(100, 25 * i, 200, 20)
+            codename_input.setGeometry(100, input_boxes_start_y + (25 * i), 150, 20)
             codename_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
 
-            self.players_red.append((id_input, codename_input))
+            equipment_id_input = QLineEdit(self.frame)
+            equipment_id_input.setGeometry(260, input_boxes_start_y + (25 * i), 50, 20)
+            equipment_id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            self.players_red.append((id_input, codename_input, equipment_id_input))
 
         self.frame_2 = QFrame(self.centralwidget)
         self.frame_2.setGeometry(410, 40, 331, 376)
         self.frame_2.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.495074, fy:0.494, stop:0 rgba(0, 107, 24, 255), stop:1 rgba(0, 0, 0, 255));")
 
+        # Adjusted Column Labels for Green Team
+        self.green_id_header = QLabel("ID", self.frame_2)
+        self.green_id_header.setGeometry(40, label_y_offset, 50, 20)
+        self.green_id_header.setStyleSheet("color: white; background-color: transparent;")
+
+        self.green_codename_header = QLabel("Codename", self.frame_2)
+        self.green_codename_header.setGeometry(100, label_y_offset, 150, 20)
+        self.green_codename_header.setStyleSheet("color: white; background-color: transparent;")
+
+        self.green_eqid_header = QLabel("Eq. ID", self.frame_2)
+        self.green_eqid_header.setGeometry(260, label_y_offset, 50, 20)
+        self.green_eqid_header.setStyleSheet("color: white; background-color: transparent;")
 
         self.players_green = []
         for i in range(15):
+            # Positioning labels and input boxes with spacing for Green Team
             label = QLabel(self.frame_2)
-            label.setGeometry(10, 25 * i, 20, 20)
+            label.setGeometry(10, input_boxes_start_y + (25 * i), 20, 20)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setStyleSheet("color: white; background-color: transparent;")
             label.setText(str(i+1))
 
             id_input = QLineEdit(self.frame_2)
-            id_input.setGeometry(40, 25 * i, 50, 20)
+            id_input.setGeometry(40, input_boxes_start_y + (25 * i), 50, 20)
             id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
 
             codename_input = QLineEdit(self.frame_2)
-            codename_input.setGeometry(100, 25 * i, 200, 20)
+            codename_input.setGeometry(100, input_boxes_start_y + (25 * i), 150, 20)
             codename_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
 
-            self.players_green.append((id_input, codename_input))
+            equipment_id_input = QLineEdit(self.frame_2)
+            equipment_id_input.setGeometry(260, input_boxes_start_y + (25 * i), 50, 20)
+            equipment_id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            self.players_green.append((id_input, codename_input, equipment_id_input))
 
         self.menubar = QMenuBar(self)
         self.setMenuBar(self.menubar)
@@ -102,11 +150,13 @@ class MainWindow(QMainWindow):
         self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px;")
         self.save_button.clicked.connect(self.save_data_to_supabase)
 
+        self.setup_udp_sockets()
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.updateSizes()
+        self.update_sizes()
 
-    def updateSizes(self):
+    def update_sizes(self):
         window_width = self.centralwidget.width()
 
         # Update label position to center horizontally
@@ -124,8 +174,7 @@ class MainWindow(QMainWindow):
         # Update save button position
         save_button_width = 100
         save_button_height = 30
-        self.save_button.setGeometry(int((window_width - save_button_width) / 2), 500, save_button_width,
-                                     save_button_height)
+        self.save_button.setGeometry(int((window_width - save_button_width) / 2), 500, save_button_width, save_button_height)
 
         # Update teams labels position
         self.red_team_label.setGeometry(60, 10, int(frame_width), 20)
@@ -136,45 +185,89 @@ class MainWindow(QMainWindow):
             label_x = 20
             player_x = label_x + self.players_red[i][0].width() - 35
             self.players_red[i][0].setGeometry(player_x, 25 * i, 50, 20)
-            self.players_red[i][1].setGeometry(player_x + 60, 25 * i, 200, 20)
+            self.players_red[i][1].setGeometry(player_x + 60, 25 * i, 150, 20)
+            self.players_red[i][2].setGeometry(player_x + 220, 25 * i, 50, 20)
 
             player_x = label_x + self.players_green[i][0].width() - 20
             self.players_green[i][0].setGeometry(player_x, 25 * i, 50, 20)
-            self.players_green[i][1].setGeometry(player_x + 60, 25 * i, 200, 20)
+            self.players_green[i][1].setGeometry(player_x + 60, 25 * i, 150, 20)
+            self.players_green[i][2].setGeometry(player_x + 220, 25 * i, 50, 20)
+
+    def prompt_player_id(self):
+        # Logic to prompt for player ID and handle database lookup
+        pass
+
+    def prompt_equipment_id(self):
+        # Logic to prompt for equipment ID after player ID is entered
+        pass
+
+    def add_player_to_database(self, player_id, codename, equipment_id):
+        # Add a new player to the database
+        pass
+
+    def broadcast_equipment_id(self, equipment_id):
+        # Send the equipment ID over UDP to localhost for local testing
+        message = str(equipment_id).encode('utf-8')
+        self.udp_socket.sendto(message, ('127.0.0.1', 7500))
+
+    def setup_udp_sockets(self):
+        self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
     def save_data_to_supabase(self):
-        try:
-            for id_input, codename_input in self.players_red:
-                player_id_text = id_input.text().strip()
-                if player_id_text:
-                    try:
-                        player_id = int(player_id_text)
-                        codename = codename_input.text()
-                        self.supabase_client.table('player').insert({'id': player_id, 'codename': codename}).execute()
-                    except ValueError:
-                        print("Player ID must be an integer.")
-                else:
-                    print("ID input is empty")
+        # Convert input data to Player objects and store them in lists
+        self.players_red_objects = []
+        self.players_green_objects = []
 
-            for id_input, codename_input in self.players_green:
+        try:
+            # Handle red team players
+            for id_input, codename_input, equipment_id_input in self.players_red:
                 player_id_text = id_input.text().strip()
-                if player_id_text:
+                codename_text = codename_input.text().strip()
+                equipment_id_text = equipment_id_input.text().strip()
+                if player_id_text and codename_text and equipment_id_text:
                     try:
-                        player_id = int(player_id_text)
-                        codename = codename_input.text()
-                        # Example table name is 'players'
-                        self.supabase_client.table('player').insert({'id': player_id, 'codename': codename}).execute()
+                        player = Player(int(player_id_text), codename_text, int(equipment_id_text))
+                        self.players_red_objects.append(player)
+                        self.broadcast_equipment_id(player.equipment_id)
                     except ValueError:
-                        print("Player ID must be an integer.")
-                else:
-                    print("ID input is empty")
+                        print("Player ID and Equipment ID must be integers.")
+
+            # Handle green team players
+            for id_input, codename_input, equipment_id_input in self.players_green:
+                player_id_text = id_input.text().strip()
+                codename_text = codename_input.text().strip()
+                equipment_id_text = equipment_id_input.text().strip()
+                if player_id_text and codename_text and equipment_id_text:
+                    try:
+                        player = Player(int(player_id_text), codename_text, int(equipment_id_text))
+                        self.players_green_objects.append(player)
+                        self.broadcast_equipment_id(player.equipment_id)
+                    except ValueError:
+                        print("Player ID and Equipment ID must be integers.")
+
+            # Now send the player objects data to the database
+            self.send_players_to_database()
+
         except Exception as e:
             print("Error occurred while saving data to Supabase:", e)
 
+    def send_players_to_database(self):
+        # Send player data to the database, excluding equipment_id
+        for player in self.players_red_objects + self.players_green_objects:
+            self.supabase_client.table('player').insert(player.to_dict()).execute()
 
+    
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    mainWindow = MainWindow()
-    mainWindow.resize(1000, 700)
-    mainWindow.show()
+    splash_pix = QPixmap('logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+    splash = QSplashScreen(splash_pix)
+    splash.show()
+    app.processEvents()
+    time.sleep(3)  # Display the splash screen for 3 seconds.
+    splash.close()
+
+    main_window = MainWindow()
+    main_window.resize(1000, 700)
+    main_window.show()
     sys.exit(app.exec())
