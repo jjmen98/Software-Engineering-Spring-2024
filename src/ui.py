@@ -228,7 +228,7 @@ class MainWindow(QMainWindow):
 
 def ui_start(backend):
     app = QApplication(sys.argv)
-    splash_pix = QPixmap('assets\splashscreen_game_sounds\logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+    splash_pix = QPixmap('assets\\splashscreen_game_sounds\\logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
     splash = QSplashScreen(splash_pix)
     splash.show()
     app.processEvents()
