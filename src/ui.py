@@ -28,8 +28,6 @@ class MainWindow(QMainWindow):
         #mainLayout = QVBoxLayout(self.centralwidget)
 
         #Sets up Player entry (inner) layout
-        
-        
         playerEntryLayout = QHBoxLayout(self.centralwidget)
         
         #Sets left background then superimposes Red Team's Layout
@@ -293,9 +291,7 @@ def ui_start(backend):
     #time.sleep(3)  # Display the splash screen for 3 seconds.
     splash.close()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    mainWindow = MainWindow()
+    mainWindow = MainWindow(backend)
     mainWindow.resize(1000, 700)
     mainWindow.show()
     sys.exit(app.exec())
