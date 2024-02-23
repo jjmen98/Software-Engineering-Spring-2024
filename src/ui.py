@@ -1,4 +1,6 @@
 import sys
+import time
+import os.path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu, QSplashScreen
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QFont
@@ -288,12 +290,17 @@ class MainWindow(QMainWindow):
 
 def ui_start(backend):
     app = QApplication(sys.argv)
-    splash_pix = QPixmap('assets\splashscreen_game_sounds\logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
-    splash = QSplashScreen(splash_pix)
-    splash.show()
-    app.processEvents()
-    #time.sleep(3)  # Display the splash screen for 3 seconds.
-    splash.close()
+    logo_path = os.path.join('assets', 'splashscreen_game_sounds','logo.jpg')
+    splash_pix = QPixmap(logo_path).scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+    
+    if splash_pix.isNull(): 
+        print(f"Failed to load image from {logo_path}")
+    else:
+        splash = QSplashScreen(splash_pix)
+        splash.show()
+        app.processEvents()
+        time.sleep(3)  # Display the splash screen for 3 seconds.
+        splash.close()
 
     mainWindow = MainWindow(backend)
     mainWindow.resize(1000, 700)
