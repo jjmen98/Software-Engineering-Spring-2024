@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         self.frame = QFrame()   #frame is the leftmost red background picture
         self.frame.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
         self.frame.setContentsMargins(20, 0, 100, 0) # To compensate for the table margins (Left, Up, Right, Down)
+
         redTeamLayout = self.setupRedTeam()
         self.frame.setLayout(redTeamLayout)
 
@@ -41,6 +42,7 @@ class MainWindow(QMainWindow):
         self.frame_2 = QFrame() #frame_2 is the rightmost green background picture
         self.frame_2.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.495074, fy:0.494, stop:0 rgba(0, 107, 24, 255), stop:1 rgba(0, 0, 0, 255));")
         self.frame_2.setContentsMargins(100, 0, 20, 0) # To compensate for the table margins (Left, Up, Right, Down)
+
         greenTeamLayout = self.setupGreenTeam()
         self.frame_2.setLayout(greenTeamLayout)
 
@@ -258,6 +260,7 @@ class MainWindow(QMainWindow):
                             player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
                             self.players_red_objects.append(player)
                             self.main.udp_server.transmit_message(str(player.player_id))
+                            self.main.database.addPlayer(str(player.player_id), str(player.codename))
                         except ValueError:
                             print("Player ID and Equipment ID must be integers.")
 
@@ -272,6 +275,7 @@ class MainWindow(QMainWindow):
                             player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
                             self.players_green_objects.append(player)
                             self.main.udp_server.transmit_message(str(player.player_id))
+                            self.main.database.addPlayer(str(player.player_id), str(player.codename))
                             #self.broadcast_equipment_id(player.equipment_id)
                         except ValueError:
                             print("Player ID and Equipment ID must be integers.")
