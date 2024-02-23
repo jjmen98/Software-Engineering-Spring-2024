@@ -190,39 +190,35 @@ class MainWindow(QMainWindow):
 
     def save_data_to_supabase(self):
         # Convert input data to Player objects and store them in lists
+        print("Save button was pressed")
         self.players_red_objects = []
         self.players_green_objects = []
-
         try:
-            # Handle red team players
-            for id_input, codename_input, equipment_id_input in self.players_red:
+            for id_input, codename_input in self.players_red:
                 player_id_text = id_input.text().strip()
-                codename_text = codename_input.text().strip()
-                equipment_id_text = equipment_id_input.text().strip()
-                if player_id_text and codename_text and equipment_id_text:
+                if player_id_text:
                     try:
-                        player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
-                        self.players_red_objects.append(player)
-                        self.main.udp_server.transmit_message(str(player.equipment_id))
+                        player_id = int(player_id_text)
+                        codename = codename_input.text()
+                        # Example table name is 'players'
+                        self.supabase_client.table('player').insert({'id': player_id, 'codename': codename}).execute()
                     except ValueError:
-                        print("Player ID and Equipment ID must be integers.")
+                        print("Player ID must be an integer.")
+                else:
+                    print("ID input is empty")
 
-            # Handle green team players
-            for id_input, codename_input, equipment_id_input in self.players_green:
+            for id_input, codename_input in self.players_green:
                 player_id_text = id_input.text().strip()
-                codename_text = codename_input.text().strip()
-                equipment_id_text = equipment_id_input.text().strip()
-                if player_id_text and codename_text and equipment_id_text:
+                if player_id_text:
                     try:
-                        player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
-                        self.players_green_objects.append(player)
-                        #self.broadcast_equipment_id(player.equipment_id)
+                        player_id = int(player_id_text)
+                        codename = codename_input.text()
+                        # Example table name is 'players'
+                        self.supabase_client.table('player').insert({'id': player_id, 'codename': codename}).execute()
                     except ValueError:
-                        print("Player ID and Equipment ID must be integers.")
-
-            # Now send the player objects data to the database
-            #self.send_players_to_database()
-
+                        print("Player ID must be an integer.")
+                else:
+                    print("ID input is empty")
         except Exception as e:
             print("Error occurred while saving data to Supabase:", e)
 
