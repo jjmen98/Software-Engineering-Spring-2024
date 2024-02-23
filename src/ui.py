@@ -1,31 +1,17 @@
 # main_window.py
 import sys
-import socket
-import supabase
 import time
+# pip install PyQt6
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QMenuBar, QMenu, QSplashScreen
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap
-from Server import UDPServer
 
-class Player:
-    def __init__(self, player_id, codename, equipment_id):
-        self.player_id = player_id
-        self.codename = codename
-        self.equipment_id = equipment_id 
-
-    def to_dict(self):
-        # This method returns data for database insertion, so we exclude equipment_id
-        return {
-            'id': self.player_id,
-            'codename': self.codename
-        }
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, backend):
         super().__init__()
-        self.supabase_client = supabase.create_client("https://blzwcpdxyfmqngexhskf.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsendjcGR4eWZtcW5nZXhoc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcyNTEyMTMsImV4cCI6MjAyMjgyNzIxM30.Y78DCDzwlRNW8MVQiVJ4itxl9NdjV99PPa7Q9hh_daI")
+        self.main = backend
 
         self.setWindowTitle("Photon")
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
@@ -151,7 +137,7 @@ class MainWindow(QMainWindow):
         self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px;")
         self.save_button.clicked.connect(self.save_data_to_supabase)
 
-        UDPServer.create_udp_socket(self,7501)
+        #self.setup_udp_sockets()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -202,18 +188,6 @@ class MainWindow(QMainWindow):
         # Logic to prompt for equipment ID after player ID is entered
         pass
 
-    def add_player_to_database(self, player_id, codename, equipment_id):
-        # Add a new player to the database
-        pass
-
-    def broadcast_equipment_id(self, equipment_id):
-        # Send the equipment ID over UDP to localhost for local testing
-        message = str(equipment_id).encode('utf-8')
-        UDPServer.transmit_message(message, ('127.0.0.1', 7500))
-
-    def setup_udp_sockets(self):
-        UDPServer.udp_socket = UDPServer(transmit_port=7500, receive_port=7501)
-
     def save_data_to_supabase(self):
         # Convert input data to Player objects and store them in lists
         self.players_red_objects = []
@@ -227,9 +201,9 @@ class MainWindow(QMainWindow):
                 equipment_id_text = equipment_id_input.text().strip()
                 if player_id_text and codename_text and equipment_id_text:
                     try:
-                        player = Player(int(player_id_text), codename_text, int(equipment_id_text))
+                        player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
                         self.players_red_objects.append(player)
-                        self.broadcast_equipment_id(player.equipment_id)
+                        self.main.udp_server.transmit_message(str(player.equipment_id))
                     except ValueError:
                         print("Player ID and Equipment ID must be integers.")
 
@@ -240,33 +214,28 @@ class MainWindow(QMainWindow):
                 equipment_id_text = equipment_id_input.text().strip()
                 if player_id_text and codename_text and equipment_id_text:
                     try:
-                        player = Player(int(player_id_text), codename_text, int(equipment_id_text))
+                        player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
                         self.players_green_objects.append(player)
-                        UDPServer.broadcast_equipment_id(player.equipment_id)
+                        #self.broadcast_equipment_id(player.equipment_id)
                     except ValueError:
                         print("Player ID and Equipment ID must be integers.")
 
             # Now send the player objects data to the database
-            self.send_players_to_database()
+            #self.send_players_to_database()
 
         except Exception as e:
             print("Error occurred while saving data to Supabase:", e)
 
-    def send_players_to_database(self):
-        # Send player data to the database, excluding equipment_id
-        for player in self.players_red_objects + self.players_green_objects:
-            self.supabase_client.table('player').insert(player.to_dict()).execute()
-
-if __name__ == "__main__":
+def ui_start(backend):
     app = QApplication(sys.argv)
-    splash_pix = QPixmap('logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+    splash_pix = QPixmap('assets\splashscreen_game_sounds\logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
     splash = QSplashScreen(splash_pix)
     splash.show()
     app.processEvents()
     time.sleep(3)  # Display the splash screen for 3 seconds.
     splash.close()
 
-    main_window = MainWindow()
+    main_window = MainWindow(backend)
     main_window.resize(1000, 700)
     main_window.show()
     sys.exit(app.exec())
