@@ -15,7 +15,7 @@ class Program:
         # initialize player lists, will hold player objects
         self.red_team = []
         self.green_team = []
-
+        print("Starting UI")
         # start ui (frontend)
         ui_start(self)
 
