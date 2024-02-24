@@ -1,16 +1,14 @@
 import sys
+import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QFont
-import supabase
-from db.PlayerDB import PlayerDB
 
 class MainWindow(QMainWindow):
     def __init__(self, backend):
         super().__init__()
+        # allows calls Database from self.main.database & UDP_Server calls from self.main.udp_server
         self.main = backend
-        self.supabase_client = supabase.create_client("https://blzwcpdxyfmqngexhskf.supabase.co",
-                                                      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsendjcGR4eWZtcW5nZXhoc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcyNTEyMTMsImV4cCI6MjAyMjgyNzIxM30.Y78DCDzwlRNW8MVQiVJ4itxl9NdjV99PPa7Q9hh_daI")
 
         self.setWindowTitle("Photon | Team 16")
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
@@ -18,10 +16,6 @@ class MainWindow(QMainWindow):
         self.setupUI()
 
         self.setMinimumSize(1000, 600)
-        # self.player_ids = self.load_player_ids_from_database()
-
-        # Initialize PlayerDB
-        self.playerDB = PlayerDB()
 
 
     def setupUI(self):
@@ -169,15 +163,13 @@ class MainWindow(QMainWindow):
         self.save_button = QPushButton("Save")
         self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
         self.save_button.setFixedSize(50,20)
-        self.save_button.clicked.connect(lambda: self.save_data_to_supabase("red"))
+        self.save_button.clicked.connect(lambda: self.save_players_ui("red"))
 
         redTeamLayout.addWidget(self.save_button)
         redTeamLayout.addStretch(1)
 
         return redTeamLayout
-    
 
-    
     def setupGreenTeam(self):
         # Green Team Layout
         greenTeamLayout = QVBoxLayout()
@@ -253,7 +245,7 @@ class MainWindow(QMainWindow):
         self.save_button = QPushButton("Save")
         self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
         self.save_button.setFixedSize(50,20)
-        self.save_button.clicked.connect(lambda: self.save_data_to_supabase("green"))
+        self.save_button.clicked.connect(lambda: self.save_players_ui("green"))
 
         greenTeamLayout.addWidget(self.save_button)
         greenTeamLayout.addStretch(1)
@@ -268,22 +260,32 @@ class MainWindow(QMainWindow):
         # Logic to prompt for equipment ID after player ID is entered
         pass
 
-    def save_data_to_supabase(self, team_color):
-        # Convert input data to Player objects and store them in lists
-        self.players_red_objects = []
-        self.players_green_objects = []
-
+    def save_players_ui(self, team_color):
+        # Convert input data to active Player objects and store them in backend lists
         try:
+            # Handle red team players
             if team_color == "red":
-                # Handle red team players
                 for id_input, codename_input, equipment_id_input in self.players_red:
                     player_id_text = id_input.text().strip()
                     codename_text = codename_input.text().strip()
                     equipment_id_text = equipment_id_input.text().strip()
+                    # will need to be adjusted not require codename and equipment id fields and to prompt each of them
                     if player_id_text and codename_text and equipment_id_text:
                         try:
                             player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
-                            self.players_red_objects.append(player)
+                            # check for id in database
+                            db_search = self.main.database.getPlayer(player.player_id)
+                            # if id was found, replace codename with found one
+                            if not db_search['needsAdding']:
+                                player.codename = str(db_search['playerName'])
+                                codename_input.setText(str(db_search['playerName']))
+                            # else add player to database
+                            else:
+                                #attempt adding new player to database and "replace" codename text
+                                codename_input.setText(str(self.main.database.addPlayer(player.player_id, player.codename)))
+                            # add to player list (Do at game start)
+                            # self.main.red_team.append(player)
+                            # transmit equipment code
                             self.main.udp_server.transmit_message(str(player.equipment_id))
                         except ValueError:
                             print("Player ID and Equipment ID must be integers.")
@@ -298,14 +300,24 @@ class MainWindow(QMainWindow):
                     if player_id_text and codename_text and equipment_id_text:
                         try:
                             player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
-                            self.players_green_objects.append(player)
+                            # check for id in database
+                            db_search = self.main.database.getPlayer(player.player_id)
+                            # if id was found, replace codename with found one
+                            if not db_search['needsAdding']:
+                                player.codename = str(db_search['playerName'])
+                                codename_input.setText(str(db_search['playerName']))
+                            # else add player to database
+                            else:
+                                # attempt adding new player to database and "replace" codename text
+                                codename_input.setText(
+                                    str(self.main.database.addPlayer(player.player_id, player.codename)))
+                            # add to player list (Do at game start)
+                            # self.main.green_team.append(player)
+                            # transmit equipment code
                             self.main.udp_server.transmit_message(str(player.equipment_id))
                         except ValueError:
                             print("Player ID and Equipment ID must be integers.")
             pass
-            # Now send the player objects data to the database
-            self.send_players_to_database()
-
         except Exception as e:
                 print("Error occurred while saving data to Supabase:", e)
 
@@ -317,7 +329,7 @@ def ui_start(backend):
     splash = QSplashScreen(splash_pix)
     splash.show()
     app.processEvents()
-    #time.sleep(3)  # Display the splash screen for 3 seconds.
+    time.sleep(3)  # Display the splash screen for 3 seconds.
     splash.close()
 
     mainWindow = MainWindow(backend)
