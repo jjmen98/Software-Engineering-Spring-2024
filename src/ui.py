@@ -1,4 +1,6 @@
 import sys
+# pip install pygame
+import pygame
 import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox
 from PyQt6.QtCore import Qt, QSize
@@ -325,12 +327,22 @@ class MainWindow(QMainWindow):
 
 def ui_start(backend):
     app = QApplication(sys.argv)
-    splash_pix = QPixmap('assets/splashscreen_game_sounds/logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
-    splash = QSplashScreen(splash_pix)
-    splash.show()
-    app.processEvents()
-    time.sleep(3)  # Display the splash screen for 3 seconds.
-    splash.close()
+    # splash_pix = QPixmap('assets/splashscreen_game_sounds/logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+    # splash = QSplashScreen(splash_pix)
+    # splash.show()
+    # app.processEvents()
+    # time.sleep(3)  # Display the splash screen for 3 seconds.
+    # splash.close()
+
+    pygame.init()
+    splash_display = pygame.display.set_mode((1000, 700)) # width height
+    splash_img = pygame.image.load('assets/splashscreen_game_sounds/logo.jpg')
+    splash_img = pygame.transform.scale(splash_img, (1000,700))
+    splash_display.blit(splash_img, (0, 0))
+    pygame.display.set_caption('Photon Tag - Team 16')
+    pygame.display.update()
+    time.sleep(3)
+    pygame.quit()
 
     mainWindow = MainWindow(backend)
     mainWindow.resize(1000, 700)
