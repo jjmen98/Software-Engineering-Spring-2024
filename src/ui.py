@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
     def setupUI(self):
 
         self.centralwidget = QWidget(self)
-        #self.setCentralWidget(self.centralwidget)
+        self.setCentralWidget(self.centralwidget)
 
         #Sets up outer layout... Superimposes the buttons ontop of the player entry layout
         #mainLayout = QVBoxLayout(self.centralwidget)
