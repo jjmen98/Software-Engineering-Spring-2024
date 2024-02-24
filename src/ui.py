@@ -21,14 +21,20 @@ class MainWindow(QMainWindow):
     def setupUI(self):
 
         self.centralwidget = QWidget(self)
-        self.setCentralWidget(self.centralwidget)
+        #self.setCentralWidget(self.centralwidget)
 
         #Sets up outer layout... Superimposes the buttons ontop of the player entry layout
         #mainLayout = QVBoxLayout(self.centralwidget)
 
+        # temp "splash" screen for ubuntu
+        splash = QLabel()
+        splash_pix = QPixmap('assets/splashscreen_game_sounds/logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+        splash.setPixmap(splash_pix)
+        self.setCentralWidget(splash)
+
         #Sets up Player entry (inner) layout
         playerEntryLayout = QHBoxLayout(self.centralwidget)
-        
+
         #Sets left background then superimposes Red Team's Layout
         self.frame = QFrame()   #frame is the leftmost red background picture
         self.frame.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
@@ -81,6 +87,10 @@ class MainWindow(QMainWindow):
     #     except Exception as e:
     #         print("Error occurred while loading player data from database:", e)
     #         return []
+
+    #Called to change window to input interface (for temp splash screen)
+    def change(self):
+        self.setCentralWidget(self.centralwidget)
 
     def setupRedTeam(self):
         # Red Team Layout
@@ -325,16 +335,24 @@ class MainWindow(QMainWindow):
 
 def ui_start(backend):
     app = QApplication(sys.argv)
-    splash_pix = QPixmap('assets\splashscreen_game_sounds\logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
-    splash = QSplashScreen(splash_pix)
-    splash.show()
-    app.processEvents()
-    time.sleep(3)  # Display the splash screen for 3 seconds.
-    splash.close()
+    #temporarily commented, as ubuntu won't show QSplashScreen at moment
+    # splash_pix = QPixmap('assets/splashscreen_game_sounds/logo.jpg').scaled(QSize(1000, 700), Qt.AspectRatioMode.KeepAspectRatio)
+    # splash = QSplashScreen(splash_pix)
+    # splash.show()
+    # app.processEvents()
+    # time.sleep(3)  # Display the splash screen for 3 seconds.
+    # splash.close()
 
     mainWindow = MainWindow(backend)
     mainWindow.resize(1000, 700)
     mainWindow.show()
+
+    # #process temp splash screen to show
+    app.processEvents()
+    time.sleep(3)
+    #change back to original UI
+    mainWindow.change()
+
     sys.exit(app.exec())
     
     
