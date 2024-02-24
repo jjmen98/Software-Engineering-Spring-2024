@@ -20,6 +20,7 @@ class Program:
         ui_start(self)
 
     # Player object to hold player_id & equipment_id together
+    #test
     class Player:
         def __init__(self, player_id, codename, equipment_id):
             self.player_id = player_id
