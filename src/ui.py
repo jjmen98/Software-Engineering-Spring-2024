@@ -1,123 +1,59 @@
-# main_window.py
 import sys
-import time
-# pip install PyQt6
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QMenuBar, QMenu, QSplashScreen
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QPixmap
-
+from PyQt6.QtGui import QPixmap, QFont
+import supabase
+from db.PlayerDB import PlayerDB
 
 class MainWindow(QMainWindow):
-
     def __init__(self, backend):
         super().__init__()
         self.main = backend
+        self.supabase_client = supabase.create_client("https://blzwcpdxyfmqngexhskf.supabase.co",
+                                                      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsendjcGR4eWZtcW5nZXhoc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcyNTEyMTMsImV4cCI6MjAyMjgyNzIxM30.Y78DCDzwlRNW8MVQiVJ4itxl9NdjV99PPa7Q9hh_daI")
 
-        self.setWindowTitle("Photon")
+        self.setWindowTitle("Photon | Team 16")
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
+
+        self.setupUI()
+
+        self.setMinimumSize(1000, 600)
+        # self.player_ids = self.load_player_ids_from_database()
+
+        # Initialize PlayerDB
+        self.playerDB = PlayerDB()
+
+
+    def setupUI(self):
 
         self.centralwidget = QWidget(self)
         self.setCentralWidget(self.centralwidget)
 
-        self.label = QLabel(self.centralwidget)
-        self.label.setGeometry(340, 0, 131, 31)
-        self.label.setText("Edit Current Game")
+        #Sets up outer layout... Superimposes the buttons ontop of the player entry layout
+        #mainLayout = QVBoxLayout(self.centralwidget)
 
-        # Red Team Label
-        self.red_team_label = QLabel(self.centralwidget)
-        self.red_team_label.setGeometry(60, 10, 331, 20)
-        self.red_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.red_team_label.setStyleSheet("color: white; background-color: transparent;")
-        self.red_team_label.setText("Red Team")
-
-        # Green Team Label
-        self.green_team_label = QLabel(self.centralwidget)
-        self.green_team_label.setGeometry(410, 10, 331, 20)
-        self.green_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.green_team_label.setStyleSheet("color: white; background-color: transparent;")
-        self.green_team_label.setText("Green Team")
-
-        self.frame = QFrame(self.centralwidget)
-        self.frame.setGeometry(60, 40, 331, 376)
+        #Sets up Player entry (inner) layout
+        playerEntryLayout = QHBoxLayout(self.centralwidget)
+        
+        #Sets left background then superimposes Red Team's Layout
+        self.frame = QFrame()   #frame is the leftmost red background picture
         self.frame.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.frame.setContentsMargins(20, 0, 100, 0) # To compensate for the table margins (Left, Up, Right, Down)
 
-        # Adjusted Column Labels for Red Team
-        label_y_offset = 35  # Starting Y offset for column labels
-        self.red_id_header = QLabel("ID", self.frame)
-        self.red_id_header.setGeometry(40, label_y_offset, 50, 20)
-        self.red_id_header.setStyleSheet("color: white; background-color: transparent;")
+        redTeamLayout = self.setupRedTeam()
+        self.frame.setLayout(redTeamLayout)
 
-        self.red_codename_header = QLabel("Codename", self.frame)
-        self.red_codename_header.setGeometry(100, label_y_offset, 150, 20)
-        self.red_codename_header.setStyleSheet("color: white; background-color: transparent;")
-
-        self.red_eqid_header = QLabel("Eq. ID", self.frame)
-        self.red_eqid_header.setGeometry(260, label_y_offset, 50, 20)
-        self.red_eqid_header.setStyleSheet("color: white; background-color: transparent;")
-
-        input_boxes_start_y = label_y_offset - 35  # Y offset for input boxes, adding a gap
-        self.players_red = []
-        for i in range(15):
-            # Positioning labels and input boxes with spacing
-            label = QLabel(self.frame)
-            label.setGeometry(10, input_boxes_start_y + (25 * i), 20, 20)
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label.setStyleSheet("color: white; background-color: transparent;")
-            label.setText(str(i+1))
-
-            id_input = QLineEdit(self.frame)
-            id_input.setGeometry(40, input_boxes_start_y + (25 * i), 50, 20)
-            id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
-
-            codename_input = QLineEdit(self.frame)
-            codename_input.setGeometry(100, input_boxes_start_y + (25 * i), 150, 20)
-            codename_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
-
-            equipment_id_input = QLineEdit(self.frame)
-            equipment_id_input.setGeometry(260, input_boxes_start_y + (25 * i), 50, 20)
-            equipment_id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
-
-            self.players_red.append((id_input, codename_input, equipment_id_input))
-
-        self.frame_2 = QFrame(self.centralwidget)
-        self.frame_2.setGeometry(410, 40, 331, 376)
+        #Sets right background then superimposes Green Team's Layout
+        self.frame_2 = QFrame() #frame_2 is the rightmost green background picture
         self.frame_2.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.495074, fy:0.494, stop:0 rgba(0, 107, 24, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.frame_2.setContentsMargins(100, 0, 20, 0) # To compensate for the table margins (Left, Up, Right, Down)
 
-        # Adjusted Column Labels for Green Team
-        self.green_id_header = QLabel("ID", self.frame_2)
-        self.green_id_header.setGeometry(40, label_y_offset, 50, 20)
-        self.green_id_header.setStyleSheet("color: white; background-color: transparent;")
+        greenTeamLayout = self.setupGreenTeam()
+        self.frame_2.setLayout(greenTeamLayout)
 
-        self.green_codename_header = QLabel("Codename", self.frame_2)
-        self.green_codename_header.setGeometry(100, label_y_offset, 150, 20)
-        self.green_codename_header.setStyleSheet("color: white; background-color: transparent;")
-
-        self.green_eqid_header = QLabel("Eq. ID", self.frame_2)
-        self.green_eqid_header.setGeometry(260, label_y_offset, 50, 20)
-        self.green_eqid_header.setStyleSheet("color: white; background-color: transparent;")
-
-        self.players_green = []
-        for i in range(15):
-            # Positioning labels and input boxes with spacing for Green Team
-            label = QLabel(self.frame_2)
-            label.setGeometry(10, input_boxes_start_y + (25 * i), 20, 20)
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label.setStyleSheet("color: white; background-color: transparent;")
-            label.setText(str(i+1))
-
-            id_input = QLineEdit(self.frame_2)
-            id_input.setGeometry(40, input_boxes_start_y + (25 * i), 50, 20)
-            id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
-
-            codename_input = QLineEdit(self.frame_2)
-            codename_input.setGeometry(100, input_boxes_start_y + (25 * i), 150, 20)
-            codename_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
-
-            equipment_id_input = QLineEdit(self.frame_2)
-            equipment_id_input.setGeometry(260, input_boxes_start_y + (25 * i), 50, 20)
-            equipment_id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
-
-            self.players_green.append((id_input, codename_input, equipment_id_input))
+        #Adds Background + Team Layouts
+        playerEntryLayout.addWidget(self.frame, 1)
+        playerEntryLayout.addWidget(self.frame_2, 1)
 
         self.menubar = QMenuBar(self)
         self.setMenuBar(self.menubar)
@@ -132,53 +68,197 @@ class MainWindow(QMainWindow):
         self.menubar.addAction(self.menuTeam_16.menuAction())
 
         self.setStatusBar(None)
-        self.save_button = QPushButton("Save", self.centralwidget)
-        self.save_button.setGeometry(60, 440, 100, 30)
-        self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px;")
-        self.save_button.clicked.connect(self.save_data_to_supabase)
 
-        #self.setup_udp_sockets()
+    # def load_player_ids_from_database(self):
+    #     try:
+    #         # Query the database to fetch all player IDs and usernames
+    #         data, _ = self.supabase_client.from_("player").select("id", "codename").execute()
+    #         print("Data from database:", data)  # Add this line for debugging
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.update_sizes()
+    #         # Ensure data is in the expected format
+    #         if isinstance(data, list):
+    #             # Extract player IDs and usernames from the fetched data
+    #             player_data = [(record["id"], record["codename"]) for record in data]
+    #             print("Processed player data:", player_data)  # Add this line for debugging
+    #             return player_data
+    #         else:
+    #             print("Unexpected data format received from database:", data)
+    #             return []
+    #     except Exception as e:
+    #         print("Error occurred while loading player data from database:", e)
+    #         return []
 
-    def update_sizes(self):
-        window_width = self.centralwidget.width()
+    def setupRedTeam(self):
+        # Red Team Layout
+        redTeamLayout = QVBoxLayout()
+        redTeamHeaderLayout = QHBoxLayout()
 
-        # Update label position to center horizontally
-        label_width = 131
-        label_height = 31
-        label_y = 0
-        self.label.setGeometry(int((window_width - label_width) / 2), label_y, label_width, label_height)
+        redTeamLayout.setContentsMargins(70, 0, 20, 0) #Margin spacers: (Left, Up, Right, Down)
+        redTeamLayout.addStretch(1)
 
-        # Update frame sizes
-        frame_width = (window_width - 120) / 2
-        frame_height = self.centralwidget.height() - 50
-        self.frame.setGeometry(60, 40, int(frame_width), int(frame_height))
-        self.frame_2.setGeometry(int(window_width / 2) + 10, 40, int(frame_width), int(frame_height))
+        self.red_team_label = QLabel("RED TEAM")
+        self.red_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_team_label.setStyleSheet("color: white; background-color: transparent;")
+        redTeamLayout.addWidget(self.red_team_label)
 
-        # Update save button position
-        save_button_width = 100
-        save_button_height = 30
-        self.save_button.setGeometry(int((window_width - save_button_width) / 2), 500, save_button_width, save_button_height)
+        # Red Team Headers
+        self.red_id_header = QLabel("ID")
+        self.red_id_header.setFixedWidth(50)        
+        self.red_id_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_id_header.setStyleSheet("color: white; background-color: transparent;")
+        #self.red_id_header.setSizePolicy(QSizePolicy.expandingDirections, 0)
 
-        # Update teams labels position
-        self.red_team_label.setGeometry(60, 10, int(frame_width), 20)
-        self.green_team_label.setGeometry(int(window_width / 2) + 10, 10, int(frame_width), 20)
+        self.red_codename_header = QLabel("Codename")
+        self.red_codename_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_codename_header.setStyleSheet("color: white; background-color: transparent;")
+        #self.red_codename_header.setSizePolicy(QSizePolicy.expandingDirections, 0)
 
-        # Update players positions
+        self.red_eqid_header = QLabel("Eq. ID")
+        self.red_eqid_header.setFixedWidth(50)
+        self.red_eqid_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_eqid_header.setStyleSheet("color: white; background-color: transparent;")
+        
+
+        # Adds headers to the header layout
+        redTeamHeaderLayout.addWidget(self.red_id_header)
+        redTeamHeaderLayout.addStretch(1)
+        redTeamHeaderLayout.addWidget(self.red_codename_header)
+        redTeamHeaderLayout.addStretch(1)
+        redTeamHeaderLayout.addWidget(self.red_eqid_header)
+
+        # Add the header layout to the team layout
+        redTeamLayout.addLayout(redTeamHeaderLayout)
+
+
+        self.players_red = []
+
         for i in range(15):
-            label_x = 20
-            player_x = label_x + self.players_red[i][0].width() - 35
-            self.players_red[i][0].setGeometry(player_x, 25 * i, 50, 20)
-            self.players_red[i][1].setGeometry(player_x + 60, 25 * i, 150, 20)
-            self.players_red[i][2].setGeometry(player_x + 220, 25 * i, 50, 20)
+            playerLayout = QHBoxLayout()
 
-            player_x = label_x + self.players_green[i][0].width() - 20
-            self.players_green[i][0].setGeometry(player_x, 25 * i, 50, 20)
-            self.players_green[i][1].setGeometry(player_x + 60, 25 * i, 150, 20)
-            self.players_green[i][2].setGeometry(player_x + 220, 25 * i, 50, 20)
+            # Create the player number label
+            player_number = QLabel(str(i+1))
+            player_number.setStyleSheet("color: white; background-color: transparent;")
+            player_number.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            player_number.setFixedWidth(30)   #This need to be here to ensure numbers past 10 don't push the boxes to the right
+
+            id_input = QLineEdit()
+            id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            codename_input = QLineEdit()
+            codename_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+
+            equipment_id_input = QLineEdit()
+            equipment_id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            # Add input fields to the player layout. The 2nd parameters are the stretch factors to size the boxes properly.
+            playerLayout.addWidget(player_number)
+            playerLayout.addWidget(id_input, 1)
+            playerLayout.addWidget(codename_input, 3)
+            playerLayout.addWidget(equipment_id_input, 1)
+
+            # Add the player layout to the team layout
+            redTeamLayout.addLayout(playerLayout)
+
+            
+            #redTeamLayout.addStretch(1)
+            self.players_red.append((id_input, codename_input, equipment_id_input))
+
+        
+        #Create save button
+        self.save_button = QPushButton("Save")
+        self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        self.save_button.setFixedSize(50,20)
+        self.save_button.clicked.connect(lambda: self.save_data_to_supabase("red"))
+
+        redTeamLayout.addWidget(self.save_button)
+        redTeamLayout.addStretch(1)
+
+        return redTeamLayout
+    
+
+    
+    def setupGreenTeam(self):
+        # Green Team Layout
+        greenTeamLayout = QVBoxLayout()
+        greenTeamHeaderLayout = QHBoxLayout()
+
+        greenTeamLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Downn)
+        greenTeamLayout.addStretch(1)
+
+        self.green_team_label = QLabel("GREEN TEAM")
+        self.green_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.green_team_label.setStyleSheet("color: white; background-color: transparent;")
+        greenTeamLayout.addWidget(self.green_team_label)
+
+        # Green Team Headers
+        self.green_id_header = QLabel("ID")
+        self.green_id_header.setFixedWidth(50)
+        self.green_id_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.green_id_header.setStyleSheet("color: white; background-color: transparent;")
+
+        self.green_codename_header = QLabel("Codename")
+        self.green_codename_header.setAlignment(Qt.AlignmentFlag.AlignCenter)       
+        self.green_codename_header.setStyleSheet("color: white; background-color: transparent;")
+
+        self.green_eqid_header = QLabel("Eq. ID")
+        self.green_eqid_header.setFixedWidth(50)
+        self.green_eqid_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.green_eqid_header.setStyleSheet("color: white; background-color: transparent;")
+        
+
+        # Adds headers to the header layout
+        greenTeamHeaderLayout.addWidget(self.green_id_header)
+        greenTeamHeaderLayout.addStretch(1)
+        greenTeamHeaderLayout.addWidget(self.green_codename_header)
+        greenTeamHeaderLayout.addStretch(1)
+        greenTeamHeaderLayout.addWidget(self.green_eqid_header)
+
+        # Add the header layout to the team layout
+        greenTeamLayout.addLayout(greenTeamHeaderLayout)
+
+
+        self.players_green = []
+        for i in range(15):
+            playerLayout = QHBoxLayout()
+
+            # Create the player number label
+            player_number = QLabel(str(i+1))
+            player_number.setStyleSheet("color: white; background-color: transparent;")
+            player_number.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            player_number.setFixedWidth(30)   #This need to be here to ensure numbers past 10 don't push the boxes to the right
+
+            id_input = QLineEdit()
+            id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            codename_input = QLineEdit()
+            codename_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            equipment_id_input = QLineEdit()
+            equipment_id_input.setStyleSheet("color: white; background-color: black; border: 1px solid white; border-radius: 7px;")
+
+            # Add input fields to the player layout. The 2nd parameters are the stretch factors to size the boxes properly.
+            playerLayout.addWidget(player_number)
+            playerLayout.addWidget(id_input, 1)
+            playerLayout.addWidget(codename_input, 3)
+            playerLayout.addWidget(equipment_id_input, 1)
+
+            # Add the player layout to the team layout
+            greenTeamLayout.addLayout(playerLayout)
+
+            self.players_green.append((id_input, codename_input, equipment_id_input))
+
+
+        #Create save button
+        self.save_button = QPushButton("Save")
+        self.save_button.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        self.save_button.setFixedSize(50,20)
+        self.save_button.clicked.connect(lambda: self.save_data_to_supabase("green"))
+
+        greenTeamLayout.addWidget(self.save_button)
+        greenTeamLayout.addStretch(1)
+
+        return greenTeamLayout
 
     def prompt_player_id(self):
         # Logic to prompt for player ID and handle database lookup
@@ -188,43 +268,48 @@ class MainWindow(QMainWindow):
         # Logic to prompt for equipment ID after player ID is entered
         pass
 
-    def save_data_to_supabase(self):
+    def save_data_to_supabase(self, team_color):
         # Convert input data to Player objects and store them in lists
         self.players_red_objects = []
         self.players_green_objects = []
 
         try:
-            # Handle red team players
-            for id_input, codename_input, equipment_id_input in self.players_red:
-                player_id_text = id_input.text().strip()
-                codename_text = codename_input.text().strip()
-                equipment_id_text = equipment_id_input.text().strip()
-                if player_id_text and codename_text and equipment_id_text:
-                    try:
-                        player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
-                        self.players_red_objects.append(player)
-                        self.main.udp_server.transmit_message(str(player.equipment_id))
-                    except ValueError:
-                        print("Player ID and Equipment ID must be integers.")
+            if team_color == "red":
+                # Handle red team players
+                for id_input, codename_input, equipment_id_input in self.players_red:
+                    player_id_text = id_input.text().strip()
+                    codename_text = codename_input.text().strip()
+                    equipment_id_text = equipment_id_input.text().strip()
+                    if player_id_text and codename_text and equipment_id_text:
+                        try:
+                            player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
+                            self.players_red_objects.append(player)
+                            self.main.udp_server.transmit_message(str(player.equipment_id))
+                        except ValueError:
+                            print("Player ID and Equipment ID must be integers.")
+            pass
 
             # Handle green team players
-            for id_input, codename_input, equipment_id_input in self.players_green:
-                player_id_text = id_input.text().strip()
-                codename_text = codename_input.text().strip()
-                equipment_id_text = equipment_id_input.text().strip()
-                if player_id_text and codename_text and equipment_id_text:
-                    try:
-                        player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
-                        self.players_green_objects.append(player)
-                        #self.broadcast_equipment_id(player.equipment_id)
-                    except ValueError:
-                        print("Player ID and Equipment ID must be integers.")
-
+            if team_color == "green":
+                for id_input, codename_input, equipment_id_input in self.players_green:
+                    player_id_text = id_input.text().strip()
+                    codename_text = codename_input.text().strip()
+                    equipment_id_text = equipment_id_input.text().strip()
+                    if player_id_text and codename_text and equipment_id_text:
+                        try:
+                            player = self.main.Player(int(player_id_text), codename_text, int(equipment_id_text))
+                            self.players_green_objects.append(player)
+                            self.main.udp_server.transmit_message(str(player.equipment_id))
+                        except ValueError:
+                            print("Player ID and Equipment ID must be integers.")
+            pass
             # Now send the player objects data to the database
-            #self.send_players_to_database()
+            self.send_players_to_database()
 
         except Exception as e:
-            print("Error occurred while saving data to Supabase:", e)
+                print("Error occurred while saving data to Supabase:", e)
+
+
 
 def ui_start(backend):
     app = QApplication(sys.argv)
@@ -232,10 +317,12 @@ def ui_start(backend):
     splash = QSplashScreen(splash_pix)
     splash.show()
     app.processEvents()
-    time.sleep(3)  # Display the splash screen for 3 seconds.
+    #time.sleep(3)  # Display the splash screen for 3 seconds.
     splash.close()
 
-    main_window = MainWindow(backend)
-    main_window.resize(1000, 700)
-    main_window.show()
+    mainWindow = MainWindow(backend)
+    mainWindow.resize(1000, 700)
+    mainWindow.show()
     sys.exit(app.exec())
+    
+    
