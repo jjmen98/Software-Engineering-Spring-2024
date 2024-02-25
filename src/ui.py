@@ -334,13 +334,18 @@ def ui_start(backend):
     # time.sleep(3)  # Display the splash screen for 3 seconds.
     # splash.close()
 
+    # pygame for splashscreen
     pygame.init()
+    # set pygame display size
     splash_display = pygame.display.set_mode((1000, 700)) # width height
+    # set splashscreen image and scale to window
     splash_img = pygame.image.load('assets/splashscreen_game_sounds/logo.jpg')
     splash_img = pygame.transform.scale(splash_img, (1000,700))
+    # display splashscreen
     splash_display.blit(splash_img, (0, 0))
     pygame.display.set_caption('Photon Tag - Team 16')
     pygame.display.update()
+    # show for 3 seconds then close splashscreen
     time.sleep(3)
     pygame.quit()
 
