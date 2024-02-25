@@ -60,3 +60,19 @@ class PlayerDB:
 
         # unsuccessful addition to database
         return 'ERROR OCCURRED'
+    
+
+    # def check_player_id_exists(self, player_id: int) -> bool:
+    #     try:
+    #         # Check if player with given ID exists in the database
+    #         self.data, self.count = self.supabase.table('player').select('id').eq('id', player_id).execute()
+    #         print("Count:", self.count)  # Add this line for debugging
+    #         # Handle unexpected result where count is not a tuple or contains unexpected data
+    #         if isinstance(self.count, tuple) and len(self.count) >= 1 and isinstance(self.count[0], int):
+    #             count_value = self.count[0]
+    #         else:
+    #             count_value = 0
+    #         return count_value > 0
+    #     except Exception as e:
+    #         print("Error occurred while checking player ID existence:", e)
+    #         return False
