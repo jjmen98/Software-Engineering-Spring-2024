@@ -48,12 +48,15 @@ Then, run your Python3 compiler from the extracted folder containing main.py usi
 >python3 main.py
 
 To add a player, enter their unique player ID, a codename, and their associated equipment ID. Then click their team's respective Save button.
+
 If their player ID is found, their codename will be overwritten with the one on the database, else their codename will be added to the database.
 
 ## Known Issues
 
 There is a PyQt6 implementation of the splash screen in the source code, however there is an issue displaying it on Ubuntu 22.04.
+
 This is currently attributed to a failed communication between Ubuntu and the PyQt6 package.
+
 Currently, the splashscreen is handled by Pygame, though we are working diligently to get the PyQt6 implementation working to lessen the required packages.
 
 ## Future Changes
