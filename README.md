@@ -40,6 +40,8 @@ All of these packages can be found & installed by pip
 
 ## Running the Program
 
-To run this project, run your Python3 compiler from the folder containing main.py using
+To run this project, download & extract the main branch to a directory on your system
+
+Then, run your Python3 compiler from the extracted folder containing main.py using
 
 >python3 main.py
