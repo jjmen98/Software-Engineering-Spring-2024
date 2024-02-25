@@ -19,7 +19,7 @@ This project is a modern replica of the software for Photon, a laser tag game cr
 
 ## Required Python Packages
 
-This Python project uses Supabase open-source python integration, PyQt6, Pygame, and the python-dotenv.
+This Python project uses Supabase open-source python integration, PyQt6, Pygame, and the python-dotenv packages.
 All of these packages can be found & installed by pip
 
 *Supabase*
