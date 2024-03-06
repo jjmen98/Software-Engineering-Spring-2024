@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
 
         self.setupUI()
 
-        self.setMinimumSize(1000, 600)
+        self.setMinimumSize(800, 600)
 
 
     def setupUI(self):
@@ -63,7 +63,35 @@ class MainWindow(QMainWindow):
         self.menubar.addAction(self.menuPhoton.menuAction())
         self.menubar.addAction(self.menuTeam_16.menuAction())
 
+
+        self.startGameButton = QPushButton("Start Game")
+        self.startGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        self.startGameButton.setFixedSize(50,20)
+        playerEntryLayout.addWidget(self.startGameButton)
+        self.startGameButton.clicked.connect(self.gameActionUI)
+
         self.setStatusBar(None)
+
+
+    def gameActionUI(self):
+
+        # Clear the current central widget
+        self.takeCentralWidget()
+        
+        # Create a new central widget for the game action screen
+        self.centralwidget = QWidget()
+        self.setCentralWidget(self.centralwidget)
+
+        gameActionLayout = QVBoxLayout(self.centralwidget)
+
+        self.centralwidget.setLayout(gameActionLayout)
+
+        #test
+        actionLabel = QLabel("Game Action Screen")
+        actionLabel.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        actionLabel.setFixedSize(100,50)
+
+        gameActionLayout.addWidget(actionLabel)
 
     # def load_player_ids_from_database(self):
     #     try:
@@ -128,6 +156,7 @@ class MainWindow(QMainWindow):
 
         self.players_red = []
 
+        #this for loop creates the tables for red team
         for i in range(15):
             playerLayout = QHBoxLayout()
 
@@ -211,7 +240,7 @@ class MainWindow(QMainWindow):
         # Add the header layout to the team layout
         greenTeamLayout.addLayout(greenTeamHeaderLayout)
 
-
+        #this for loop creates the tables for green team
         self.players_green = []
         for i in range(15):
             playerLayout = QHBoxLayout()
