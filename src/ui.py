@@ -83,15 +83,46 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
         gameActionLayout = QVBoxLayout(self.centralwidget)
+        scoreLayout = QHBoxLayout(self.centralwidget)
+        killFeedLayout = QHBoxLayout(self.centralwidget)
+        
+        self.scoreBackground = QFrame()   #frame is the leftmost red background picture
+        self.scoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.scoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
+
+        self.killFeedBackground = QFrame()   #frame is the leftmost red background picture
+        self.killFeedBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
+
+        self.scoreBackground.setLayout()
+
+
+
 
         self.centralwidget.setLayout(gameActionLayout)
+        self.centralwidget.setLayout(scoreLayout)
+        self.centralwidget.setLayout(killFeedLayout)
+
+        gameActionLayout.addWidget(self.scoreBackground, 1)
+        gameActionLayout.addWidget(self.killFeedBackground, 1)
+
+
+
+    def setupScoreLayout(self):
+        print("penis")
+    
+
+    def setupKillFeedLayout(self):
+    
+        print("penis")
+
 
         #test
-        actionLabel = QLabel("Game Action Screen")
-        actionLabel.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
-        actionLabel.setFixedSize(100,50)
+        # actionLabel = QLabel("Game Action Screen")
+        # actionLabel.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        # actionLabel.setFixedSize(100,50)
 
-        gameActionLayout.addWidget(actionLabel)
+        # gameActionLayout.addWidget(actionLabel)
 
     # def load_player_ids_from_database(self):
     #     try:
@@ -123,6 +154,7 @@ class MainWindow(QMainWindow):
         self.red_team_label = QLabel("RED TEAM")
         self.red_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.red_team_label.setStyleSheet("color: white; background-color: transparent;")
+        
         redTeamLayout.addWidget(self.red_team_label)
 
         # Red Team Headers
