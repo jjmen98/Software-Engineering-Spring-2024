@@ -94,7 +94,7 @@ class MainWindow(QMainWindow):
         self.killFeedBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
         self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
 
-        self.scoreBackground.setLayout()
+        # self.scoreBackground.setLayout()
 
 
 
@@ -109,53 +109,50 @@ class MainWindow(QMainWindow):
 
 
     def setupScoreLayout(self):
-        print("penis")
-    
+        redTeamVerLayout = QVBoxLayout()
+        redTeamHorLayout = QHBoxLayout()
+
+        redTeamVerLayout.setContentsMargins(70, 0, 20, 0) #Margin spacers: (Left, Up, Right, Down)
+        redTeamVerLayout.addStretch(1)
+
+        # Red Team User IDs
+        self.red_id_header = QLabel("UserID")
+        self.red_id_header.setFixedWidth(50)        
+        self.red_id_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_id_header.setStyleSheet("color: white; background-color: transparent;")
+
+        # Red Team Score
+        self.red_id_header = QLabel("Score")
+        self.red_id_header.setFixedWidth(50)        
+        self.red_id_header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_id_header.setStyleSheet("color: white; background-color: transparent;")        
+        
+        greenTeamVerLayout = QVBoxLayout()
+        greenTeamHorLayout = QHBoxLayout()
+        
+        greenTeamVerLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Down)
+        greenTeamVerLayout.addStretch(1)
+
+        print("HiScore")
 
     def setupKillFeedLayout(self):
     
-        print("penis")
+        print("HiFeed")
 
-
-        #test
-        # actionLabel = QLabel("Game Action Screen")
-        # actionLabel.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
-        # actionLabel.setFixedSize(100,50)
-
-        # gameActionLayout.addWidget(actionLabel)
-
-    # def load_player_ids_from_database(self):
-    #     try:
-    #         # Query the database to fetch all player IDs and usernames
-    #         data, _ = self.supabase_client.from_("player").select("id", "codename").execute()
-    #         print("Data from database:", data)  # Add this line for debugging
-
-    #         # Ensure data is in the expected format
-    #         if isinstance(data, list):
-    #             # Extract player IDs and usernames from the fetched data
-    #             player_data = [(record["id"], record["codename"]) for record in data]
-    #             print("Processed player data:", player_data)  # Add this line for debugging
-    #             return player_data
-    #         else:
-    #             print("Unexpected data format received from database:", data)
-    #             return []
-    #     except Exception as e:
-    #         print("Error occurred while loading player data from database:", e)
-    #         return []
-
+      
     def setupRedTeam(self):
         # Red Team Layout
-        redTeamLayout = QVBoxLayout()
+        redTeamVerLayout = QVBoxLayout()
         redTeamHeaderLayout = QHBoxLayout()
 
-        redTeamLayout.setContentsMargins(70, 0, 20, 0) #Margin spacers: (Left, Up, Right, Down)
-        redTeamLayout.addStretch(1)
+        redTeamVerLayout.setContentsMargins(70, 0, 20, 0) #Margin spacers: (Left, Up, Right, Down)
+        redTeamVerLayout.addStretch(1)
 
         self.red_team_label = QLabel("RED TEAM")
         self.red_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.red_team_label.setStyleSheet("color: white; background-color: transparent;")
         
-        redTeamLayout.addWidget(self.red_team_label)
+        redTeamVerLayout.addWidget(self.red_team_label)
 
         # Red Team Headers
         self.red_id_header = QLabel("ID")
@@ -183,7 +180,7 @@ class MainWindow(QMainWindow):
         redTeamHeaderLayout.addWidget(self.red_eqid_header)
 
         # Add the header layout to the team layout
-        redTeamLayout.addLayout(redTeamHeaderLayout)
+        redTeamVerLayout.addLayout(redTeamHeaderLayout)
 
 
         self.players_red = []
@@ -215,10 +212,10 @@ class MainWindow(QMainWindow):
             playerLayout.addWidget(equipment_id_input, 1)
 
             # Add the player layout to the team layout
-            redTeamLayout.addLayout(playerLayout)
+            redTeamVerLayout.addLayout(playerLayout)
 
             
-            #redTeamLayout.addStretch(1)
+            #redTeamVerLayout.addStretch(1)
             self.players_red.append((id_input, codename_input, equipment_id_input))
 
         
@@ -228,23 +225,23 @@ class MainWindow(QMainWindow):
         self.save_button.setFixedSize(50,20)
         self.save_button.clicked.connect(lambda: self.save_players_ui("red"))
 
-        redTeamLayout.addWidget(self.save_button)
-        redTeamLayout.addStretch(1)
+        redTeamVerLayout.addWidget(self.save_button)
+        redTeamVerLayout.addStretch(1)
 
-        return redTeamLayout
+        return redTeamVerLayout
 
     def setupGreenTeam(self):
         # Green Team Layout
-        greenTeamLayout = QVBoxLayout()
+        greenTeamVerLayout = QVBoxLayout()
         greenTeamHeaderLayout = QHBoxLayout()
 
-        greenTeamLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Downn)
-        greenTeamLayout.addStretch(1)
+        greenTeamVerLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Downn)
+        greenTeamVerLayout.addStretch(1)
 
         self.green_team_label = QLabel("GREEN TEAM")
         self.green_team_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.green_team_label.setStyleSheet("color: white; background-color: transparent;")
-        greenTeamLayout.addWidget(self.green_team_label)
+        greenTeamVerLayout.addWidget(self.green_team_label)
 
         # Green Team Headers
         self.green_id_header = QLabel("ID")
@@ -270,7 +267,7 @@ class MainWindow(QMainWindow):
         greenTeamHeaderLayout.addWidget(self.green_eqid_header)
 
         # Add the header layout to the team layout
-        greenTeamLayout.addLayout(greenTeamHeaderLayout)
+        greenTeamVerLayout.addLayout(greenTeamHeaderLayout)
 
         #this for loop creates the tables for green team
         self.players_green = []
@@ -299,7 +296,7 @@ class MainWindow(QMainWindow):
             playerLayout.addWidget(equipment_id_input, 1)
 
             # Add the player layout to the team layout
-            greenTeamLayout.addLayout(playerLayout)
+            greenTeamVerLayout.addLayout(playerLayout)
 
             self.players_green.append((id_input, codename_input, equipment_id_input))
 
@@ -310,10 +307,10 @@ class MainWindow(QMainWindow):
         self.save_button.setFixedSize(50,20)
         self.save_button.clicked.connect(lambda: self.save_players_ui("green"))
 
-        greenTeamLayout.addWidget(self.save_button)
-        greenTeamLayout.addStretch(1)
+        greenTeamVerLayout.addWidget(self.save_button)
+        greenTeamVerLayout.addStretch(1)
 
-        return greenTeamLayout
+        return greenTeamVerLayout
 
     def prompt_player_id(self):
         # Logic to prompt for player ID and handle database lookup
