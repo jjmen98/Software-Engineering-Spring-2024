@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
         greenTeamVerLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Down)
         greenTeamVerLayout.addStretch(1)
 
-        print("HiScore")
+        print("HiScore") 
 
     def setupKillFeedLayout(self):
     
