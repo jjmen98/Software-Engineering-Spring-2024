@@ -285,8 +285,10 @@ class MainWindow(QMainWindow):
                             else:
                                 #attempt adding new player to database and "replace" codename text
                                 codename_input.setText(str(self.main.database.addPlayer(player.player_id, player.codename)))
-                            # add to player list (Do at game start)
-                            # self.main.red_team.append(player)
+                            # add to player list, check if already in game.
+                            added = self.main.add_team_player(player, "red")
+                            if not added:
+                                print("save_players_ui: Player already added")
                             # transmit equipment code
                             self.main.udp_server.transmit_message(str(player.equipment_id))
                         except ValueError:
@@ -313,8 +315,10 @@ class MainWindow(QMainWindow):
                                 # attempt adding new player to database and "replace" codename text
                                 codename_input.setText(
                                     str(self.main.database.addPlayer(player.player_id, player.codename)))
-                            # add to player list (Do at game start)
-                            # self.main.green_team.append(player)
+                            # add to player list, check if already in game.
+                            added = self.main.add_team_player(player, "green")
+                            if not added:
+                                print("save_players_ui: Player already added")
                             # transmit equipment code
                             self.main.udp_server.transmit_message(str(player.equipment_id))
                         except ValueError:
