@@ -83,39 +83,34 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
         gameActionLayout = QVBoxLayout(self.centralwidget)
-        scoreLayout = QHBoxLayout(self.centralwidget)
         killFeedLayout = QHBoxLayout(self.centralwidget)
-        gameActionLayout.addLayout(scoreLayout)
-        gameActionLayout.addLayout(killFeedLayout)
-
+        scoreLayout = QHBoxLayout()
         
-        self.redscoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.redscoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
-        self.redscoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
-
-        self.greenscoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.greenscoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
-        self.greenscoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
-
         self.killFeedBackground = QFrame()   #frame is the leftmost red background picture
         self.killFeedBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
         self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
-
-        # self.scoreBackground.setLayout()
-
-
-
+        
+        self.redScoreBackground = QFrame()   #frame is the leftmost red background picture
+        self.redScoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.redScoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
+        
+        self.greenScoreBackground = QFrame()   #frame is the leftmost red background picture
+        self.greenScoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.495074, fy:0.494, stop:0 rgba(0, 107, 24, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.greenScoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
+        
         redScoreLayout = self.setupRedScoreLayout()
         greenScoreLayout = self.setupGreenScoreLayout()
+        killFeedLayout = self.setupKillFeedLayout()
 
-        # self.centralwidget.setLayout(gameActionLayout)
-        self.redscoreBackground.setLayout(redScoreLayout)
-        self.greenscoreBackground.setLayout(greenScoreLayout)
-        self.centralwidget.setLayout(killFeedLayout)
+        self.killFeedBackground.setLayout(killFeedLayout)
+        self.redScoreBackground.setLayout(redScoreLayout)
+        self.greenScoreBackground.setLayout(greenScoreLayout)
 
-        gameActionLayout.addWidget(self.redscoreBackground, 1)
-        gameActionLayout.addWidget(self.greenscoreBackground, 1)
-        gameActionLayout.addWidget(self.killFeedBackground, 1)
+        scoreLayout.addWidget(self.redScoreBackground)
+        scoreLayout.addWidget(self.greenScoreBackground)
+
+        gameActionLayout.addLayout(scoreLayout)
+        gameActionLayout.addWidget(self.killFeedBackground)
 
 
 
@@ -124,19 +119,19 @@ class MainWindow(QMainWindow):
         redTeamVerLayout = QVBoxLayout()
         redTeamHorLayout = QHBoxLayout()
 
-        redTeamVerLayout.setContentsMargins(70, 0, 20, 0) #Margin spacers: (Left, Up, Right, Down)
-        redTeamVerLayout.addStretch(1)
+        redTeamVerLayout.setContentsMargins(0, 0, 0, 0) #Margin spacers: (Left, Up, Right, Down)
+        #redTeamVerLayout.addStretch(1)
 
         # Red Team User IDs
         self.redUserID = QLabel("UserID")
         self.redUserID.setFixedWidth(50)        
-        self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.redUserID.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.redUserID.setStyleSheet("color: white; background-color: transparent;")
 
         # Red Team Score
         self.redScore = QLabel("Score")
         self.redScore.setFixedWidth(50)        
-        self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.redScore.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.redScore.setStyleSheet("color: white; background-color: transparent;")     
 
         redTeamHorLayout.addWidget(self.redUserID)
@@ -151,19 +146,19 @@ class MainWindow(QMainWindow):
         greenTeamVerLayout = QVBoxLayout()
         greenTeamHorLayout = QHBoxLayout()
 
-        greenTeamHorLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Down)
-        greenTeamHorLayout.addStretch(1)
+        greenTeamHorLayout.setContentsMargins(0, 0, 0, 0) #Margin spacers: (Left, Up, Right, Down)
+        #greenTeamHorLayout.addStretch(1)
         
         # Green Team User IDs
         self.greenUserID = QLabel("UserID")
         self.greenUserID.setFixedWidth(50)        
-        self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.greenUserID.setStyleSheet("color: white; background-color: transparent;")
 
         # Green Team Score
         self.greenScore = QLabel("Score")
         self.greenScore.setFixedWidth(50)        
-        self.greenScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.greenScore.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.greenScore.setStyleSheet("color: white; background-color: transparent;")
 
         greenTeamHorLayout.addWidget(self.greenUserID)
@@ -177,8 +172,17 @@ class MainWindow(QMainWindow):
         
 
     def setupKillFeedLayout(self):
+
+        killfeedVerLayout = QVBoxLayout()
+        killfeedHorLayout = QHBoxLayout()
+
+        killfeedHorLayout.setContentsMargins(20, 0, 70, 0) #Margin spacers: (Left, Up, Right, Down)
+        killfeedHorLayout.addStretch(1)
+
+        killfeedVerLayout.addLayout(killfeedHorLayout)
     
-        print("HiFeed")
+        #print("HiFeed")
+        return killfeedVerLayout
 
       
     def setupRedTeam(self):
