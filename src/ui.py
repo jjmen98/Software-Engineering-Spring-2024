@@ -91,12 +91,12 @@ class MainWindow(QMainWindow):
         self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
         
         self.redScoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.redScoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
-        self.redScoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
+        self.redScoreBackground.setStyleSheet("background-color: black;")
+        self.redScoreBackground.setContentsMargins(0, 0, 0, 0) # To compensate for the table margins (Left, Up, Right, Down)
         
         self.greenScoreBackground = QFrame()   #frame is the leftmost red background picture
         self.greenScoreBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.495074, fy:0.494, stop:0 rgba(0, 107, 24, 255), stop:1 rgba(0, 0, 0, 255));")
-        self.greenScoreBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
+        self.greenScoreBackground.setContentsMargins(0, 0, 0, 0) # To compensate for the table margins (Left, Up, Right, Down)
         
         redScoreLayout = self.setupRedScoreLayout()
         greenScoreLayout = self.setupGreenScoreLayout()
@@ -117,34 +117,47 @@ class MainWindow(QMainWindow):
     def setupRedScoreLayout(self):
         #####RED#####
         redTeamLayout = QGridLayout()
-        #redTeamHorLayout = QHBoxLayout()
 
-        #redTeamVerLayout.setContentsMargins(0, 0, 0, 0) #Margin spacers: (Left, Up, Right, Down)
-        #redTeamVerLayout.addStretch(1)
-
+        font = QFont("Arial", 10, QFont.Weight.Bold)
+        userFont = QFont("Arial", 8)
+        titleFont = QFont("Arial", 14, QFont.Weight.Bold)
         # Red Team User IDs
         self.redUserID = QLabel("UserID")
-        self.redUserID.setFixedWidth(50)        
-        self.redUserID.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.redUserID.setStyleSheet("color: white; background-color: transparent;")
-
+        self.redUserID.setFont(font)
+        self.redUserID.setStyleSheet("color: red; background-color: transparent;")
         self.teamTitle = QLabel("RED TEAM")
-        self.teamTitle.setFixedWidth(70) 
-        self.teamTitle.setAlignment(Qt.AlignmentFlag.AlignTop)  
-        self.teamTitle.setStyleSheet("color: white; background-color: transparent;")
+        self.teamTitle.setFont(titleFont)
+        self.teamTitle.setStyleSheet("color: red; background-color: transparent;")
 
         # Red Team Score
         self.redScore = QLabel("Score")
-        self.redScore.setFixedWidth(50)        
-        self.redScore.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.redScore.setStyleSheet("color: white; background-color: transparent;") 
+        self.redScore.setFont(font)
+        self.redScore.setStyleSheet("color: red; background-color: transparent;") 
 
+        self.testUser = QLabel("Test User")
+        self.testUser.setFont(userFont)
+        self.testUser.setStyleSheet("color: red; background-color: transparent;")
 
+        self.testScore = QLabel("Test Score")
+        self.testScore.setFont(userFont)
+        self.testScore.setStyleSheet("color: red; background-color: transparent;")
 
-        redTeamLayout.addWidget(self.redUserID, 1, 5)
-        redTeamLayout.addWidget(self.teamTitle, 0, 10)
-        redTeamLayout.addWidget(self.redScore, 1, 15)
+        for i in range(1,10):
+            for j in range(1,10):
+                redTeamLayout.addWidget(QLabel(" "),i,j)
 
+        self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.teamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.testUser.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.testScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        redTeamLayout.addWidget(self.redUserID, 1, 2)
+        redTeamLayout.addWidget(self.teamTitle, 0, 5)
+        redTeamLayout.addWidget(self.redScore, 1, 8)
+        redTeamLayout.addWidget(self.testUser, 2, 2)
+        redTeamLayout.addWidget(self.testScore, 2, 8)
+        #redTeamLayout.addWidget(self.initializeGrid, 9, 14)
         #redTeamVerLayout.addWidget(self.teamTitle)
         return redTeamLayout
 
