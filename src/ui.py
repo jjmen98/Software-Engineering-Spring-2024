@@ -2,7 +2,7 @@ import sys
 # pip install pygame
 import pygame
 import time
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMenuBar, QMenu, QGridLayout, QSplashScreen, QMessageBox
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QFont
 
@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
         scoreLayout = QHBoxLayout()
         
         self.killFeedBackground = QFrame()   #frame is the leftmost red background picture
-        self.killFeedBackground.setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(120, 0, 0, 255), stop:1 rgba(0, 0, 0, 255));")
+        self.killFeedBackground.setStyleSheet("background-color: blue;")
         self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
         
         self.redScoreBackground = QFrame()   #frame is the leftmost red background picture
@@ -116,10 +116,10 @@ class MainWindow(QMainWindow):
 
     def setupRedScoreLayout(self):
         #####RED#####
-        redTeamVerLayout = QVBoxLayout()
-        redTeamHorLayout = QHBoxLayout()
+        redTeamLayout = QGridLayout()
+        #redTeamHorLayout = QHBoxLayout()
 
-        redTeamVerLayout.setContentsMargins(0, 0, 0, 0) #Margin spacers: (Left, Up, Right, Down)
+        #redTeamVerLayout.setContentsMargins(0, 0, 0, 0) #Margin spacers: (Left, Up, Right, Down)
         #redTeamVerLayout.addStretch(1)
 
         # Red Team User IDs
@@ -128,18 +128,25 @@ class MainWindow(QMainWindow):
         self.redUserID.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.redUserID.setStyleSheet("color: white; background-color: transparent;")
 
+        self.teamTitle = QLabel("RED TEAM")
+        self.teamTitle.setFixedWidth(70) 
+        self.teamTitle.setAlignment(Qt.AlignmentFlag.AlignTop)  
+        self.teamTitle.setStyleSheet("color: white; background-color: transparent;")
+
         # Red Team Score
         self.redScore = QLabel("Score")
         self.redScore.setFixedWidth(50)        
         self.redScore.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.redScore.setStyleSheet("color: white; background-color: transparent;")     
+        self.redScore.setStyleSheet("color: white; background-color: transparent;") 
 
-        redTeamHorLayout.addWidget(self.redUserID)
-        redTeamHorLayout.addWidget(self.redScore)
 
-        print("HiScore")
-        redTeamVerLayout.addLayout(redTeamHorLayout)
-        return redTeamVerLayout
+
+        redTeamLayout.addWidget(self.redUserID, 1, 5)
+        redTeamLayout.addWidget(self.teamTitle, 0, 10)
+        redTeamLayout.addWidget(self.redScore, 1, 15)
+
+        #redTeamVerLayout.addWidget(self.teamTitle)
+        return redTeamLayout
 
        ######GREEN######        
     def setupGreenScoreLayout(self):
@@ -449,7 +456,7 @@ def ui_start(backend):
     pygame.display.set_caption('Photon Tag - Team 16')
     pygame.display.update()
     # show for 3 seconds then close splashscreen
-    time.sleep(3)
+    #time.sleep(3)
     pygame.quit()
 
     mainWindow = MainWindow(backend)
