@@ -3,7 +3,7 @@ import sys
 import pygame
 import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
-    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout
+    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QFont
 
@@ -64,14 +64,14 @@ class MainWindow(QMainWindow):
 
         self.startGameButton = QPushButton("Start Game")
         self.startGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
-        self.startGameButton.setFixedSize(50, 20)
+        self.startGameButton.setFixedSize(100, 20)
         playerEntryLayout.addWidget(self.startGameButton)
         self.startGameButton.clicked.connect(self.gameActionUI)
         self.setStatusBar(None)
 
         self.deleteGameButton = QPushButton("Delete Game")
         self.deleteGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
-        self.deleteGameButton.setFixedSize(50, 20)
+        self.deleteGameButton.setFixedSize(100, 20)
         playerEntryLayout.addWidget(self.deleteGameButton)
         self.deleteGameButton.clicked.connect(self.delete_all_players)
         self.setStatusBar(None)
@@ -460,7 +460,7 @@ class MainWindow(QMainWindow):
         return 1
 
     def save_players_ui(self, team_color):
-        # Convert input data to active Player objects and store them in backend lists
+    # Convert input data to active Player objects and store them in backend lists
         try:
             # Handle red team players
             if team_color == "red":
@@ -477,21 +477,32 @@ class MainWindow(QMainWindow):
                                 equipment_id_input.setFocus()  # Set focus to equipment ID input
                             else:
                                 # Prompt user to input codename and equipment ID using QInputDialog
-                                codename, ok1 = QInputDialog.getText(self, "Player Information", "Enter Codename:")
-                                equipment_id, ok2 = QInputDialog.getText(self, "Player Information", "Enter Equipment ID:")
-                                if ok1 and ok2:
-                                    codename_input.setText(codename)
-                                    equipment_id_input.setText(equipment_id)
-                                    # add player to database
-                                    self.main.database.addPlayer(int(player_id_text), codename)
-                                    # transmit equipment code
-                                    self.main.udp_server.transmit_message(equipment_id)
+                                dialog = QInputDialog(self)
+                                dialog.setInputMode(QInputDialog.InputMode.TextInput)
+                                dialog.setLabelText("Enter Codename:")
+                                dialog.setWindowTitle("Player Information")
+                                dialog.setOkButtonText("Next")
+                                dialog.setCancelButtonText("Cancel")
+                                dialog.setStyleSheet("color: white;")  # Set font color
+                                result = dialog.exec()
+                                if result == QDialog.DialogCode.Accepted:
+                                    codename = dialog.textValue()
+                                    dialog.setLabelText("Enter Equipment ID:")
+                                    result = dialog.exec()
+                                    if result == QDialog.DialogCode.Accepted:
+                                        equipment_id = dialog.textValue()
+                                        codename_input.setText(codename)
+                                        equipment_id_input.setText(equipment_id)
+                                        # add player to database
+                                        self.main.database.addPlayer(int(player_id_text), codename)
+                                        # transmit equipment code
+                                        self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
-            pass
+                pass
 
             # Handle green team players
-            if team_color == "green":
+            elif team_color == "green":
                 for id_input, codename_input, equipment_id_input in self.players_green:
                     player_id_text = id_input.text().strip()
                     # Check if player ID is provided
@@ -505,18 +516,29 @@ class MainWindow(QMainWindow):
                                 equipment_id_input.setFocus()  # Set focus to equipment ID input
                             else:
                                 # Prompt user to input codename and equipment ID using QInputDialog
-                                codename, ok1 = QInputDialog.getText(self, "Player Information", "Enter Codename:")
-                                equipment_id, ok2 = QInputDialog.getText(self, "Player Information", "Enter Equipment ID:")
-                                if ok1 and ok2:
-                                    codename_input.setText(codename)
-                                    equipment_id_input.setText(equipment_id)
-                                    # add player to database
-                                    self.main.database.addPlayer(int(player_id_text), codename)
-                                    # transmit equipment code
-                                    self.main.udp_server.transmit_message(equipment_id)
+                                dialog = QInputDialog(self)
+                                dialog.setInputMode(QInputDialog.InputMode.TextInput)
+                                dialog.setLabelText("Enter Codename:")
+                                dialog.setWindowTitle("Player Information")
+                                dialog.setOkButtonText("Next")
+                                dialog.setCancelButtonText("Cancel")
+                                dialog.setStyleSheet("color: white;")  # Set font color
+                                result = dialog.exec()
+                                if result == QDialog.DialogCode.Accepted:
+                                    codename = dialog.textValue()
+                                    dialog.setLabelText("Enter Equipment ID:")
+                                    result = dialog.exec()
+                                    if result == QDialog.DialogCode.Accepted:
+                                        equipment_id = dialog.textValue()
+                                        codename_input.setText(codename)
+                                        equipment_id_input.setText(equipment_id)
+                                        # add player to database
+                                        self.main.database.addPlayer(int(player_id_text), codename)
+                                        # transmit equipment code
+                                        self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
-            pass
+                pass
         except Exception as e:
             print("Error occurred while saving data to Supabase:", e)
 
