@@ -87,7 +87,12 @@ class Program:
                     self.green_team.remove(member)
                     player_removed = False
 
-        return player_removed;
+        return player_removed
+
+    # function to clear team_lists
+    def clear_teams(self):
+        self.red_team.clear()
+        self.green_team.clear()
 
 
 # starts program

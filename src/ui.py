@@ -84,7 +84,8 @@ class MainWindow(QMainWindow):
             self.delete_all_players()
 
     def delete_all_players(self):
-       self.clear_player_entries() 
+        self.clear_player_entries()
+        self.main.clear_teams()
 
     def clear_player_entries(self):
         # Implement logic to clear player entries from the UI
@@ -502,8 +503,15 @@ class MainWindow(QMainWindow):
                                         equipment_id_input.setText(equipment_id)
                                         # add player to database
                                         self.main.database.addPlayer(int(player_id_text), codename)
-                                        # transmit equipment code
-                                        self.main.udp_server.transmit_message(equipment_id)
+                            # create player for team list
+                            player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(),
+                                                      int(equipment_id_input.text().strip()))
+                            # add to player list, check if already in game.
+                            added = self.main.add_team_player(player, "red")
+                            if not added:
+                                print("save_players_ui: Player already added")
+                            # transmit equipment code
+                            self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
                 pass
@@ -517,7 +525,7 @@ class MainWindow(QMainWindow):
                         try:
                             # Perform Supabase search using player ID
                             db_search = self.main.database.getPlayer(int(player_id_text))
-                            # If player is found in Supabase, prompt for codename and equipment ID
+                            # If player is found in Supabase, prompt for equipment ID
                             if not db_search['needsAdding']:
                                 codename_input.setText(str(db_search['playerName']))
                                 equipment_id_input.setFocus()  # Set focus to equipment ID input
@@ -541,8 +549,14 @@ class MainWindow(QMainWindow):
                                         equipment_id_input.setText(equipment_id)
                                         # add player to database
                                         self.main.database.addPlayer(int(player_id_text), codename)
-                                        # transmit equipment code
-                                        self.main.udp_server.transmit_message(equipment_id)
+                            # create player for team list
+                            player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(), int(equipment_id_input.text().strip()))
+                            # add to player list, check if already in game.
+                            added = self.main.add_team_player(player, "green")
+                            if not added:
+                                print("save_players_ui: Player already added")
+                            # transmit equipment code
+                            self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
                 pass
