@@ -5,7 +5,8 @@ import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
     QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QPixmap, QFont
+from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
+
 
 app = QApplication(sys.argv)
 class MainWindow(QMainWindow):
@@ -76,6 +77,12 @@ class MainWindow(QMainWindow):
         self.deleteGameButton.clicked.connect(self.delete_all_players)
         self.setStatusBar(None)
 
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key.Key_F5:
+            self.gameActionUI()
+        elif event.key() == Qt.Key.Key_F12:
+            self.delete_all_players()
+
     def delete_all_players(self):
        self.clear_player_entries() 
 
@@ -95,7 +102,7 @@ class MainWindow(QMainWindow):
            
     def gameActionUI(self):
         self.setVisible(False)
-        #self.countdown()
+        self.countdown()
         self.setVisible(True)
          # Clear the current central widget
         self.takeCentralWidget()
