@@ -511,6 +511,7 @@ class MainWindow(QMainWindow):
                             if not added:
                                 print("save_players_ui: Player already added")
                             # transmit equipment code
+                            equipment_id = equipment_id_input.text().strip()
                             self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
@@ -556,6 +557,7 @@ class MainWindow(QMainWindow):
                             if not added:
                                 print("save_players_ui: Player already added")
                             # transmit equipment code
+                            equipment_id = equipment_id_input.text().strip()
                             self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
