@@ -145,99 +145,101 @@ class MainWindow(QMainWindow):
 
 
     def setupRedScoreLayout(self):
-        #####RED#####
         redTeamLayout = QGridLayout()
 
+        # Fonts
         font = QFont("Arial", 10, QFont.Weight.Bold)
         userFont = QFont("Arial", 8)
         titleFont = QFont("Arial", 14, QFont.Weight.Bold)
-        # Red Team User IDs
-        self.redUserID = QLabel("UserID")
-        self.redUserID.setFont(font)
-        self.redUserID.setStyleSheet("color: red; background-color: transparent;")
-        self.teamTitle = QLabel("RED TEAM")
-        self.teamTitle.setFont(titleFont)
-        self.teamTitle.setStyleSheet("color: red; background-color: transparent;")
 
-        # Red Team Score
-        self.redScore = QLabel("Score")
-        self.redScore.setFont(font)
-        self.redScore.setStyleSheet("color: red; background-color: transparent;") 
-
-        self.testUser = QLabel("Test User")
-        self.testUser.setFont(userFont)
-        self.testUser.setStyleSheet("color: red; background-color: transparent;")
-
-        self.testScore = QLabel("Test Score")
-        self.testScore.setFont(userFont)
-        self.testScore.setStyleSheet("color: red; background-color: transparent;")
-
-        for i in range(1,10):
+        for i in range(1,15):
             for j in range(1,10):
                 redTeamLayout.addWidget(QLabel(" "),i,j)
 
-        self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Red Team Title
+        self.teamTitle = QLabel("RED TEAM")
+        self.teamTitle.setFont(titleFont)
+        self.teamTitle.setStyleSheet("color: red; background-color: transparent;")
         self.teamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.testUser.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.testScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        redTeamLayout.addWidget(self.teamTitle, 0, 5)  # Span the title over 3 columns for better centering
 
+        # Column Headers
+        self.redUserID = QLabel("CODENAME:")
+        self.redUserID.setFont(font)
+        self.redUserID.setStyleSheet("color: red; background-color: transparent;")
+        self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
         redTeamLayout.addWidget(self.redUserID, 1, 2)
-        redTeamLayout.addWidget(self.teamTitle, 0, 5)
+
+        self.redScore = QLabel("Score:")
+        self.redScore.setFont(font)
+        self.redScore.setStyleSheet("color: red; background-color: transparent;")
+        self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
         redTeamLayout.addWidget(self.redScore, 1, 8)
-        redTeamLayout.addWidget(self.testUser, 2, 2)
-        redTeamLayout.addWidget(self.testScore, 2, 8)
-        #redTeamLayout.addWidget(self.initializeGrid, 9, 14)
-        #redTeamVerLayout.addWidget(self.teamTitle)
+
+        # Add players to the layout
+        for i, player in enumerate(self.main.red_team, start=3): 
+            playerNameLabel = QLabel(player.codename)
+            playerNameLabel.setFont(userFont)
+            playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
+            playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            redTeamLayout.addWidget(playerNameLabel, i, 2)
+
+            playerScoreLabel = QLabel("0")  # Replace with actual score retrieval
+            playerScoreLabel.setFont(userFont)
+            playerScoreLabel.setStyleSheet("color: red; background-color: transparent;")
+            playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            redTeamLayout.addWidget(playerScoreLabel, i, 8)
 
         return redTeamLayout
 
     ######GREEN######
     def setupGreenScoreLayout(self):
-        #####green#####
         greenTeamLayout = QGridLayout()
 
+        # Fonts
         font = QFont("Arial", 10, QFont.Weight.Bold)
         userFont = QFont("Arial", 8)
         titleFont = QFont("Arial", 14, QFont.Weight.Bold)
-        # green Team User IDs
-        self.greenUserID = QLabel("UserID")
-        self.greenUserID.setFont(font)
-        self.greenUserID.setStyleSheet("color: green; background-color: transparent;")
-        self.greenteamTitle = QLabel("GREEN TEAM")
-        self.greenteamTitle.setFont(titleFont)
-        self.greenteamTitle.setStyleSheet("color: green; background-color: transparent;")
 
-        # green Team Score
-        self.greenScore = QLabel("Score")
-        self.greenScore.setFont(font)
-        self.greenScore.setStyleSheet("color: green; background-color: transparent;") 
-
-        self.greentestUser = QLabel("Test User")
-        self.greentestUser.setFont(userFont)
-        self.greentestUser.setStyleSheet("color: green; background-color: transparent;")
-
-        self.greentestScore = QLabel("Test Score")
-        self.greentestScore.setFont(userFont)
-        self.greentestScore.setStyleSheet("color: green; background-color: transparent;")
-
-        for i in range(1,10):
+        for i in range(1,15):
             for j in range(1,10):
                 greenTeamLayout.addWidget(QLabel(" "),i,j)
 
-        self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.greenteamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.greenScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.greentestUser.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.greentestScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        greenTeamLayout.addWidget(self.greenUserID, 1, 2)
-        greenTeamLayout.addWidget(self.greenteamTitle, 0, 5)
-        greenTeamLayout.addWidget(self.greenScore, 1, 8)
-        greenTeamLayout.addWidget(self.greentestUser, 2, 2)
-        greenTeamLayout.addWidget(self.greentestScore, 2, 8)
-        #greenTeamLayout.addWidget(self.initializeGrid, 9, 14)
-        #greenTeamVerLayout.addWidget(self.teamTitle)
+        # Green Team Title
+        self.greenteamTitle = QLabel("GREEN TEAM")
+        self.greenteamTitle.setFont(titleFont)
+        self.greenteamTitle.setStyleSheet("color: green; background-color: transparent;")
+        self.greenteamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        greenTeamLayout.addWidget(self.greenteamTitle, 0, 5)  # Title at the top, spanning columns as needed
+
+        # Column Headers
+        self.greenUserID = QLabel("CODENAME:")
+        self.greenUserID.setFont(font)
+        self.greenUserID.setStyleSheet("color: green; background-color: transparent;")
+        self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        greenTeamLayout.addWidget(self.greenUserID, 1, 2)  # UserID header in the second column
+
+        self.greenScore = QLabel("Score:")
+        self.greenScore.setFont(font)
+        self.greenScore.setStyleSheet("color: green; background-color: transparent;")
+        self.greenScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        greenTeamLayout.addWidget(self.greenScore, 1, 8)  # Score header in the eighth column
+
+        # Add players to the layout
+        for i, player in enumerate(self.main.green_team, start=3):  # Start at the third row
+            playerNameLabel = QLabel(player.codename)
+            playerNameLabel.setFont(userFont)
+            playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
+            playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            greenTeamLayout.addWidget(playerNameLabel, i, 2)  # Player names in the second column
+
+            playerScoreLabel = QLabel("0")  # Placeholder for the score
+            playerScoreLabel.setFont(userFont)
+            playerScoreLabel.setStyleSheet("color: green; background-color: transparent;")
+            playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            greenTeamLayout.addWidget(playerScoreLabel, i, 8)  # Player scores in the eighth column
+
         return greenTeamLayout
 
     def setupKillFeedLayout(self):
@@ -593,3 +595,4 @@ def ui_start(backend):
     mainWindow.resize(1000, 700)
     mainWindow.show()
     sys.exit(app.exec())
+
