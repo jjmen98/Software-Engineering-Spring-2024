@@ -62,15 +62,12 @@ Then, run your Python3 compiler from the extracted folder containing main.py usi
 
 ## Known Issues
 
-There is a PyQt6 implementation of the splash screen in the source code, however, there is an issue displaying it on Ubuntu 22.04.
+There is a rouge QLayout error when displaying the Game Action screen, although it does not currently affect the functionality of the program.
 
-This is currently attributed to a failed communication between Ubuntu and the PyQt6 package.
-
-Currently, the splash screen is handled by Pygame, though we are working diligently to get the PyQt6 implementation working to lessen the required packages.
+After the Game Action screen appears, you currently must restart the program to go back to the Player Entry screen.
 
 ## Future Changes
 
-1. Allow Player ID lookup without Codename & Equipment ID fields filled
-2. Handle Duplicate Player Input
-3. Add Play & Countdown Screens
+1. Input Players one at a time
+2. Add Realtime Game Updates Funtionality to Game Action Screen
 4. Update Backend to handle Score & Hit tracking
