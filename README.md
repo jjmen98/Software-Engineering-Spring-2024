@@ -47,17 +47,26 @@ Then, run your Python3 compiler from the extracted folder containing main.py usi
 
 >python3 main.py
 
-To add a player, enter their unique player ID, a codename, and their associated equipment ID. Then click their team's respective Save button.
+### Player Entry:
+- To add a player, input their unique player ID, a codename, and their associated equipment ID.
+- Click the Save button corresponding to the player's team.
+- If the player ID is recognized, their codename will be updated from the database; otherwise, a new entry will be created.
+- To clear player entries, either click "Delete Game" or press F12.
 
-If their player ID is found, their codename will be overwritten with the one on the database, else their codename will be added to the database.
+### Starting the Game:
+- Once all players and their details are entered, click "Start Game" or press F5.
+- This will initiate a 30-second countdown before transitioning to the Game Action screen.
+
+### Game Action:
+- This screen displays player codenames and their scores for the ongoing game.
 
 ## Known Issues
 
-There is a PyQt6 implementation of the splash screen in the source code, however there is an issue displaying it on Ubuntu 22.04.
+There is a PyQt6 implementation of the splash screen in the source code, however, there is an issue displaying it on Ubuntu 22.04.
 
 This is currently attributed to a failed communication between Ubuntu and the PyQt6 package.
 
-Currently, the splashscreen is handled by Pygame, though we are working diligently to get the PyQt6 implementation working to lessen the required packages.
+Currently, the splash screen is handled by Pygame, though we are working diligently to get the PyQt6 implementation working to lessen the required packages.
 
 ## Future Changes
 
