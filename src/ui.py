@@ -467,6 +467,8 @@ class MainWindow(QMainWindow):
             # show for 3 seconds then close splashscreen
             time.sleep(1)
         pygame.quit()
+        # Transmit game Start Code
+        self.main.udp_server.transmit_message("202")
         return 1
 
     def save_players_ui(self, team_color):
