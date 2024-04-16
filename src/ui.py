@@ -4,7 +4,7 @@ import pygame
 import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
     QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, QTimer
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
 
 
@@ -100,14 +100,32 @@ class MainWindow(QMainWindow):
             codename_input.clear()
             equipment_id_input.clear() 
        
-           
+    # Start of Timer Methods 
+    def update_timer_display(self):
+        remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
+        self.timer_label.setText(f"Time Remaining: {remaining_time}")
+
+    def calculate_remaining_time(self): 
+        elapsed_seconds = self.elapsed_time() 
+        remaining_seconds = max(0,6*60 - elapsed_seconds)
+        minutes = int(remaining_seconds // 60)
+        seconds = int(remaining_seconds % 60)
+        return f"{minutes:01} : {seconds:02}" 
+    
+    def elapsed_time(self): 
+        current_time = time.time() 
+        elapsed_seconds = current_time - self.start_time 
+        return elapsed_seconds
+    #End of Timer Methods 
+
+
     def gameActionUI(self):
         self.setVisible(False)
         self.countdown()
         self.setVisible(True)
+        
          # Clear the current central widget
         self.takeCentralWidget()
-        
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
@@ -141,8 +159,30 @@ class MainWindow(QMainWindow):
 
         gameActionLayout.addLayout(scoreLayout)
         gameActionLayout.addWidget(self.killFeedBackground)
-
-
+       
+       #Timer, Can be moved to seperate method
+        self.start_time = time.time()
+        self.timer_label = QLabel("Timer")
+        self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
+        gameActionLayout.addWidget(self.timer_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
+        gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
+        # Initialize the timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_timer_display)
+        self.timer.start(1000) #Measured in ms
+        
+    #Not Being Used Yet
+    def timerLayout(self):
+        timerLayout = QVBoxLayout()
+        # Create and format the timer label
+        self.timer_label = QLabel("Timer")
+        self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align center horizontally
+        timerLayout.addWidget(self.timer_label)
+        return timerLayout
+    
+        
 
     def setupRedScoreLayout(self):
         redTeamLayout = QGridLayout()
@@ -467,6 +507,8 @@ class MainWindow(QMainWindow):
             # show for 3 seconds then close splashscreen
             time.sleep(1)
         pygame.quit()
+        # Transmit game Start Code
+        self.main.udp_server.transmit_message("202")
         return 1
 
     def save_players_ui(self, team_color):
@@ -595,4 +637,3 @@ def ui_start(backend):
     mainWindow.resize(1000, 700)
     mainWindow.show()
     sys.exit(app.exec())
-
