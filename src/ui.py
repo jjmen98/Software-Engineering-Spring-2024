@@ -102,21 +102,31 @@ class MainWindow(QMainWindow):
        
     # Start of Timer Methods 
     def update_timer_display(self):
-        remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
-        self.timer_label.setText(f"Time Remaining: {remaining_time}")
-
+        self.remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
+        self.timer_label.setText(f"Time Remaining: {self.remaining_time}")
+       
     def calculate_remaining_time(self): 
         elapsed_seconds = self.elapsed_time() 
         remaining_seconds = max(0,6*60 - elapsed_seconds)
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
+        if int(remaining_seconds) <= 0: 
+            self.timer.stop() 
+            self.timerOut() 
         return f"{minutes:01} : {seconds:02}" 
     
     def elapsed_time(self): 
         current_time = time.time() 
         elapsed_seconds = current_time - self.start_time 
         return elapsed_seconds
-    #End of Timer Methods 
+    
+    #End of Timer Method
+    #Game End message after timer runs out, Call Jonathons button 
+    def timerOut(self): 
+        for i in range(3): 
+            self.main.udp_server.transmit_message("221")
+
+    #Call Jonathons Button 
 
 
     def gameActionUI(self):
@@ -126,6 +136,10 @@ class MainWindow(QMainWindow):
         
          # Clear the current central widget
         self.takeCentralWidget()
+        
+        
+
+
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
@@ -170,16 +184,20 @@ class MainWindow(QMainWindow):
         # Initialize the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_timer_display)
-        self.timer.start(1000) #Measured in ms
+        self.timer.start(1000)
         
-    #Not Being Used Yet
+
+        #currently not in use 
     def timerLayout(self):
+        # Create a vertical layout for the timer label
         timerLayout = QVBoxLayout()
+
         # Create and format the timer label
         self.timer_label = QLabel("Timer")
         self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align center horizontally
         timerLayout.addWidget(self.timer_label)
+
         return timerLayout
     
         
@@ -560,6 +578,7 @@ class MainWindow(QMainWindow):
                         except ValueError:
                             print("Player ID must be an integer.")
                 pass
+
 
             # Handle green team players
             elif team_color == "green":
