@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
             codename_input.clear()
             equipment_id_input.clear() 
        
-           
+    #####################GAMEACTIONUI###################################################
     def gameActionUI(self):
         self.setVisible(False)
         self.countdown()
@@ -141,6 +141,18 @@ class MainWindow(QMainWindow):
 
         gameActionLayout.addLayout(scoreLayout)
         gameActionLayout.addWidget(self.killFeedBackground)
+
+        #button return declaration
+        player_entry_button = QPushButton("Player entry screen", self.centralwidget)
+        player_entry_button.clicked.connect(self.player_entry_button)
+
+        #layout
+        player_entry_button_layout = QVBoxLayout(self.centralwidget)
+        player_entry_button_layout.addWidget(player_entry_button)
+
+
+    def player_entry_button(self):
+        self.setupUI()
 
 
 
@@ -457,7 +469,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(30, -1, -1):
+        for i in range(5, -1, -1):
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
