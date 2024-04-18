@@ -3,7 +3,7 @@ import sys
 import pygame
 import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
-    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog
+    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog, QScrollArea
 from PyQt6.QtCore import Qt, QSize, QTimer
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
 
@@ -130,61 +130,43 @@ class MainWindow(QMainWindow):
 
 
     def gameActionUI(self):
-        self.setVisible(False)
-        self.countdown()
-        self.setVisible(True)
+        # self.setVisible(False)
+        # self.countdown()
+        # self.setVisible(True)
         
-         # Clear the current central widget
         self.takeCentralWidget()
-        
-        
-
-
-        # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
-
         gameActionLayout = QVBoxLayout(self.centralwidget)
-        killFeedLayout = QHBoxLayout(self.centralwidget)
-        scoreLayout = QHBoxLayout()
-        
-        self.killFeedBackground = QFrame()   #frame is the leftmost red background picture
-        self.killFeedBackground.setStyleSheet("background-color: blue;")
-        self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
-        
-        self.redScoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.redScoreBackground.setStyleSheet("background-color: black;")
-        self.redScoreBackground.setContentsMargins(0, 0, 0, 0) # To compensate for the table margins (Left, Up, Right, Down)
-        
-        self.greenScoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.greenScoreBackground.setStyleSheet("background-color: black;")
-        self.greenScoreBackground.setContentsMargins(0, 0, 0, 0) # To compensate for the table margins (Left, Up, Right, Down)
-        
-        redScoreLayout = self.setupRedScoreLayout()
-        greenScoreLayout = self.setupGreenScoreLayout()
-        killFeedLayout = self.setupKillFeedLayout()
 
-        self.killFeedBackground.setLayout(killFeedLayout)
+        # Setup for score displays
+        self.redScoreBackground = QFrame()
+        self.redScoreBackground.setStyleSheet("background-color: black;")
+        redScoreLayout = self.setupRedScoreLayout()
         self.redScoreBackground.setLayout(redScoreLayout)
+
+        self.greenScoreBackground = QFrame()
+        self.greenScoreBackground.setStyleSheet("background-color: black;")
+        greenScoreLayout = self.setupGreenScoreLayout()
         self.greenScoreBackground.setLayout(greenScoreLayout)
 
+        scoreLayout = QHBoxLayout()
         scoreLayout.addWidget(self.redScoreBackground)
         scoreLayout.addWidget(self.greenScoreBackground)
-
         gameActionLayout.addLayout(scoreLayout)
+
+        # Setup for kill feed
+        self.killFeedBackground = QFrame()
+        self.killFeedBackground.setStyleSheet("background-color: blue;")
+        self.killFeedBackground.setContentsMargins(0, 20, 0, 20)
+        killFeedLayout = QHBoxLayout(self.killFeedBackground)
+        scrollArea = self.setupKillFeedLayout()
+        killFeedLayout.addWidget(scrollArea)
         gameActionLayout.addWidget(self.killFeedBackground)
+
+
        
-       #Timer, Can be moved to seperate method
-        self.start_time = time.time()
-        self.timer_label = QLabel("Timer")
-        self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
-        gameActionLayout.addWidget(self.timer_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
-        gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
-        # Initialize the timer
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_timer_display)
-        self.timer.start(1000)
+
         
 
         #currently not in use 
@@ -204,7 +186,8 @@ class MainWindow(QMainWindow):
 
     def setupRedScoreLayout(self):
         redTeamLayout = QGridLayout()
-
+        redTeamLayout.setSpacing(0)  # Eliminate spacing between cells
+        redTeamLayout.setContentsMargins(0, 0, 0, 0)  # Eliminate margins within the layout
         # Fonts
         font = QFont("Arial", 10, QFont.Weight.Bold)
         userFont = QFont("Arial", 8)
@@ -214,25 +197,37 @@ class MainWindow(QMainWindow):
             for j in range(1,10):
                 redTeamLayout.addWidget(QLabel(" "),i,j)
 
+        #Timer, Can be moved to seperate method
+        self.start_time = time.time()
+        self.timer_label = QLabel("Timer")
+        self.timer_label.setStyleSheet("color: white; background-color: transparent; font-size: 12px;")
+        redTeamLayout.addWidget(self.timer_label, 0,5)
+        #gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
+        #gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
+        # Initialize the timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_timer_display)
+        self.timer.start(1000)
+
         # Red Team Title
         self.teamTitle = QLabel("RED TEAM")
         self.teamTitle.setFont(titleFont)
         self.teamTitle.setStyleSheet("color: red; background-color: transparent;")
         self.teamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        redTeamLayout.addWidget(self.teamTitle, 0, 5)  # Span the title over 3 columns for better centering
+        redTeamLayout.addWidget(self.teamTitle, 1, 5)  # Span the title over 3 columns for better centering
 
         # Column Headers
         self.redUserID = QLabel("CODENAME:")
         self.redUserID.setFont(font)
         self.redUserID.setStyleSheet("color: red; background-color: transparent;")
         self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        redTeamLayout.addWidget(self.redUserID, 1, 2)
+        redTeamLayout.addWidget(self.redUserID, 2, 2)
 
         self.redScore = QLabel("Score:")
         self.redScore.setFont(font)
         self.redScore.setStyleSheet("color: red; background-color: transparent;")
         self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        redTeamLayout.addWidget(self.redScore, 1, 8)
+        redTeamLayout.addWidget(self.redScore, 2, 8)
 
         # Add players to the layout
         for i, player in enumerate(self.main.red_team, start=3): 
@@ -269,20 +264,20 @@ class MainWindow(QMainWindow):
         self.greenteamTitle.setFont(titleFont)
         self.greenteamTitle.setStyleSheet("color: green; background-color: transparent;")
         self.greenteamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        greenTeamLayout.addWidget(self.greenteamTitle, 0, 5)  # Title at the top, spanning columns as needed
+        greenTeamLayout.addWidget(self.greenteamTitle, 1, 5)  # Title at the top, spanning columns as needed
 
         # Column Headers
         self.greenUserID = QLabel("CODENAME:")
         self.greenUserID.setFont(font)
         self.greenUserID.setStyleSheet("color: green; background-color: transparent;")
         self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        greenTeamLayout.addWidget(self.greenUserID, 1, 2)  # UserID header in the second column
+        greenTeamLayout.addWidget(self.greenUserID, 2, 2)  # UserID header in the second column
 
         self.greenScore = QLabel("Score:")
         self.greenScore.setFont(font)
         self.greenScore.setStyleSheet("color: green; background-color: transparent;")
         self.greenScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        greenTeamLayout.addWidget(self.greenScore, 1, 8)  # Score header in the eighth column
+        greenTeamLayout.addWidget(self.greenScore, 2, 8)  # Score header in the eighth column
 
         # Add players to the layout
         for i, player in enumerate(self.main.green_team, start=3):  # Start at the third row
@@ -301,17 +296,32 @@ class MainWindow(QMainWindow):
         return greenTeamLayout
 
     def setupKillFeedLayout(self):
+        
+        scrollArea = QScrollArea(self.centralwidget)
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        killfeedVerLayout = QVBoxLayout()
-        killfeedHorLayout = QHBoxLayout()
+        scrollAreaWidgetContents = QWidget()
+        scrollArea.setStyleSheet("background: transparent;")
+        scrollAreaWidgetContents.setStyleSheet("background: transparent;")
+        scrollArea.setWidget(scrollAreaWidgetContents)
+        
 
-        killfeedHorLayout.setContentsMargins(20, 0, 70, 0)  # Margin spacers: (Left, Up, Right, Down)
-        killfeedHorLayout.addStretch(1)
+        # Fonts
+        font = QFont("Arial", 10, QFont.Weight.Bold)
+        userFont = QFont("Arial", 8)
+        titleFont = QFont("Arial", 14, QFont.Weight.Bold)
 
-        killfeedVerLayout.addLayout(killfeedHorLayout)
+        killFeedLayout = QGridLayout()
+        scrollAreaWidgetContents.setLayout(killFeedLayout)
 
-        # print("HiFeed")
-        return killfeedVerLayout
+        for i in range(1,15):
+            for j in range(1,10):
+                killFeedLayout.addWidget(QLabel(" "),i,j)
+
+
+        return scrollArea
 
     def setupRedTeam(self):
         # Red Team Layout
