@@ -120,13 +120,24 @@ class MainWindow(QMainWindow):
         elapsed_seconds = current_time - self.start_time 
         return elapsed_seconds
     
-    #End of Timer Method
-    #Game End message after timer runs out, Call Jonathons button 
+    #Game End method after timer runs out, Call Jonathons button 
     def timerOut(self): 
         for i in range(3): 
             self.main.udp_server.transmit_message("221")
+         #button return declaration
+        player_entry_button = QPushButton("Player entry screen", self.centralwidget)
+        player_entry_button.clicked.connect(self.player_entry_button)
+        
+        player_entry_button.setStyleSheet("background-color: white;")
 
-    #Call Jonathons Button 
+
+        #layout
+        self.gameActionLayout.addWidget(player_entry_button)
+
+
+    def player_entry_button(self):
+        self.setupUI()
+    
 
 
     def gameActionUI(self):
@@ -137,14 +148,11 @@ class MainWindow(QMainWindow):
          # Clear the current central widget
         self.takeCentralWidget()
         
-        
-
-
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
 
-        gameActionLayout = QVBoxLayout(self.centralwidget)
+        self.gameActionLayout = QVBoxLayout(self.centralwidget)
         killFeedLayout = QHBoxLayout(self.centralwidget)
         scoreLayout = QHBoxLayout()
         
@@ -171,20 +179,20 @@ class MainWindow(QMainWindow):
         scoreLayout.addWidget(self.redScoreBackground)
         scoreLayout.addWidget(self.greenScoreBackground)
 
-        gameActionLayout.addLayout(scoreLayout)
-        gameActionLayout.addWidget(self.killFeedBackground)
+        self.gameActionLayout.addLayout(scoreLayout)
+        self.gameActionLayout.addWidget(self.killFeedBackground)
        
        #Timer, Can be moved to seperate method
         self.start_time = time.time()
         self.timer_label = QLabel("Timer")
         self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
-        gameActionLayout.addWidget(self.timer_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
-        gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
+        self.gameActionLayout.addWidget(self.timer_label, alignment=Qt.AlignmentFlag.AlignBottom)
+        self.gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
+        self.gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
         # Initialize the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_timer_display)
-        self.timer.start(1000)
+        self.timer.start(300)
         
 
         #currently not in use 
