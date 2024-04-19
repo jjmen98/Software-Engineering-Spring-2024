@@ -2,13 +2,18 @@ import sys
 # pip install pygame
 import pygame
 import time
+import random
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
     QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog
-from PyQt6.QtCore import Qt, QSize
+
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
+from PyQt6.QtCore import Qt, QSize, QUrl, QTimer
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
+#include <QMediaContent>
 
 
 app = QApplication(sys.argv)
+
 class MainWindow(QMainWindow):
     def __init__(self, backend):
         super().__init__()
@@ -18,7 +23,24 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
         self.setupUI()
         self.setMinimumSize(800, 600)
+        self.player = QMediaPlayer()
+        self.audioOutput = QAudioOutput()
 
+    def update_position(self, status):
+        if status == QMediaPlayer.MediaStatus.LoadedMedia:
+            self.player.setPosition(20000)
+            self.player.play()
+
+    def play_music(self):
+        self.player.setAudioOutput(self.audioOutput)
+        trackNo = random.randint(1, 8)
+        if trackNo == 5:
+            trackNo = 4
+        track = "Track0" + str(trackNo) + ".wav"
+        print("Playing " + track)
+        filepath = "assets/tracks/" + track
+        self.player.mediaStatusChanged.connect(self.update_position)
+        self.player.setSource(QUrl.fromLocalFile(filepath))
 
     def setupUI(self):
         self.centralwidget = QWidget(self)
@@ -194,44 +216,46 @@ class MainWindow(QMainWindow):
         self.setVisible(False)
         self.countdown()
         self.setVisible(True)
-         # Clear the current central widget
+        # Clear the current central widget
         self.takeCentralWidget()
-        
+        self.play_music()
+
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
 
         gameActionLayout = QVBoxLayout(self.centralwidget)
-        killFeedLayout = QHBoxLayout(self.centralwidget)
-        scoreLayout = QHBoxLayout()
-        
-        self.killFeedBackground = QFrame()   #frame is the leftmost red background picture
-        self.killFeedBackground.setStyleSheet("background-color: blue;")
-        self.killFeedBackground.setContentsMargins(0, 20, 0, 20) # To compensate for the table margins (Left, Up, Right, Down)
-        
-        self.redScoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.redScoreBackground.setStyleSheet("background-color: black;")
-        self.redScoreBackground.setContentsMargins(0, 0, 0, 0) # To compensate for the table margins (Left, Up, Right, Down)
-        
-        self.greenScoreBackground = QFrame()   #frame is the leftmost red background picture
-        self.greenScoreBackground.setStyleSheet("background-color: black;")
-        self.greenScoreBackground.setContentsMargins(0, 0, 0, 0) # To compensate for the table margins (Left, Up, Right, Down)
-        
+
+        # Set up layouts
         redScoreLayout = self.setupRedScoreLayout()
         greenScoreLayout = self.setupGreenScoreLayout()
         killFeedLayout = self.setupKillFeedLayout()
 
+        # Add backgrounds and layouts
+        self.killFeedBackground = QFrame()  # frame is the leftmost red background picture
+        self.killFeedBackground.setStyleSheet("background-color: blue;")
+        self.killFeedBackground.setContentsMargins(0, 20, 0,
+                                                   20)  # To compensate for the table margins (Left, Up, Right, Down)
         self.killFeedBackground.setLayout(killFeedLayout)
+
+        self.redScoreBackground = QFrame()  # frame is the leftmost red background picture
+        self.redScoreBackground.setStyleSheet("background-color: black;")
+        self.redScoreBackground.setContentsMargins(0, 0, 0,
+                                                   0)  # To compensate for the table margins (Left, Up, Right, Down)
         self.redScoreBackground.setLayout(redScoreLayout)
+
+        self.greenScoreBackground = QFrame()  # frame is the leftmost red background picture
+        self.greenScoreBackground.setStyleSheet("background-color: black;")
+        self.greenScoreBackground.setContentsMargins(0, 0, 0,
+                                                     0)  # To compensate for the table margins (Left, Up, Right, Down)
         self.greenScoreBackground.setLayout(greenScoreLayout)
 
+        scoreLayout = QHBoxLayout()
         scoreLayout.addWidget(self.redScoreBackground)
         scoreLayout.addWidget(self.greenScoreBackground)
 
         gameActionLayout.addLayout(scoreLayout)
         gameActionLayout.addWidget(self.killFeedBackground)
-
-
 
     def setupRedScoreLayout(self):
         redTeamLayout = QGridLayout()
@@ -266,7 +290,7 @@ class MainWindow(QMainWindow):
         redTeamLayout.addWidget(self.redScore, 1, 8)
 
         # Add players to the layout
-        for i, player in enumerate(self.main.red_team, start=3): 
+        for i, player in enumerate(self.main.red_team, start=3):
             playerNameLabel = QLabel(player.codename)
             playerNameLabel.setFont(userFont)
             playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
@@ -522,10 +546,23 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(30, -1, -1):
+        for i in range(2, -1, -1):
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
+            if i == 15:
+                trackNo = random.randint(1, 8)
+                if trackNo == 5:
+                    trackNo = 4
+                track = "Track0" + str(trackNo)
+                pygame.mixer.init()
+                pygame.mixer.music.load(f"assets/tracks/{track}.wav")
+                original_frequency = pygame.mixer.Sound(f"assets/tracks/{track}.wav").get_length()
+                new_frequency = int(original_frequency / 4)
+                pygame.mixer.music.set_endevent(pygame.USEREVENT)
+                pygame.mixer.music.play()  # Play the loaded file
+                print("Playing track " + str(trackNo))
+
             # display splashscreen
             splash_display.blit(countdown_img, (0, 0))
             pygame.display.update()
