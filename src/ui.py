@@ -2,9 +2,11 @@ import sys
 # pip install pygame
 import pygame
 import time
+import random
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
     QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog, QScrollArea
-from PyQt6.QtCore import Qt, QSize, QTimer
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
+from PyQt6.QtCore import Qt, QSize, QTimer, QUrl
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
 
 
@@ -18,6 +20,24 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
         self.setupUI()
         self.setMinimumSize(800, 600)
+        self.player = QMediaPlayer()
+        self.audioOutput = QAudioOutput()
+
+    def update_position(self, status):
+        if status == QMediaPlayer.MediaStatus.LoadedMedia:
+            self.player.setPosition(20000)
+            self.player.play()
+
+    def play_music(self):
+        self.player.setAudioOutput(self.audioOutput)
+        trackNo = random.randint(1, 8)
+        if trackNo == 5:
+            trackNo = 4
+        track = "Track0" + str(trackNo) + ".wav"
+        print("Playing " + track)
+        filepath = "assets/tracks/" + track
+        self.player.mediaStatusChanged.connect(self.update_position)
+        self.player.setSource(QUrl.fromLocalFile(filepath))
 
     def setupUI(self):
         self.centralwidget = QWidget(self)
@@ -77,6 +97,94 @@ class MainWindow(QMainWindow):
         self.deleteGameButton.clicked.connect(self.delete_all_players)
         self.setStatusBar(None)
 
+        self.id_input = QLineEdit()
+        self.id_input.setPlaceholderText("ENTER ID")
+        self.id_input.setStyleSheet("background-color: black; color: white;")
+        self.id_input.setFixedSize(100, 50)
+
+        self.codename_input = QLineEdit()
+        self.codename_input.setEnabled(False)
+        self.codename_input.setPlaceholderText("ENTER CODENAME")
+        self.codename_input.setStyleSheet("background-color: black; color: white;")
+        self.codename_input.setFixedSize(100, 50)
+
+        self.equipment_id_input = QLineEdit()
+        self.equipment_id_input.setEnabled(False)
+        self.equipment_id_input.setPlaceholderText("ENTER EQUIPMENT ID")
+        self.equipment_id_input.setStyleSheet("background-color: black; color: white;")
+        self.equipment_id_input.setFixedSize(100, 50)
+
+
+        # Get the layout of self.frame
+        central_widget_layout = self.centralwidget.layout()
+
+        # Add the QLineEdit widget to the layout of self.frame
+        central_widget_layout.addWidget(self.id_input)
+        central_widget_layout.addWidget(self.codename_input)
+        central_widget_layout.addWidget(self.equipment_id_input)
+
+        # Set alignment of the layout to center horizontally
+        central_widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        central_widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        if self.id_input.text() is not None:
+            self.id_input.returnPressed.connect(self.save_on_enter)
+        self.codename_input.returnPressed.connect(lambda: self.codename_add_player)
+        self.equipment_id_input.returnPressed.connect(self.add_player_to_team)
+
+    def add_player_to_team(self):
+        try:
+            equipment_id = int(self.equipment_id_input.text())
+            print("EQUIPMENT ID:", equipment_id)
+            if equipment_id % 2:
+                print("TEAM RED")
+                player_info = {
+                    "id": self.id_input.text(),
+                    "codename": self.codename_input.text(),
+                    "equipment_id": self.equipment_id_input.text()
+                }
+            else:
+                print("TEAM GREEN")
+        except ValueError:
+            if self.equipment_id_input.text() == "":
+                print("No equipment ID entered.")
+            else:
+                print("Not an integer.")
+                return
+            
+    def codename_add_player(self):
+        self.main.database.addPlayer(int(self.id_input.text()), self.codename_input.text())
+
+    def save_on_enter(self):
+        # Get the input text from id_input widget
+        id_text = self.id_input.text()
+
+        # Check if the input text is not empty
+        if id_text:
+            try:
+                # Convert the input text to an integer
+                id_value = int(id_text)
+
+                # Proceed with further logic using the integer value
+                foundPlayer = self.main.database.getPlayer(id_value)
+                print(foundPlayer)
+                if foundPlayer["playerName"] == None:
+                    print("Need to add player.")
+                    self.codename_input.clear()
+                    self.codename_input.setEnabled(True)
+                else:
+                    print("Player found.")
+                    print("ID:", id_value, "Codename:", foundPlayer["playerName"])
+                    self.codename_input.setText(foundPlayer["playerName"])
+                    self.codename_input.setEnabled(False)
+                    self.equipment_id_input.setEnabled(True)
+            except ValueError:
+                # Handle the case where the input text cannot be converted to an integer
+                print("Invalid input. Please enter a valid integer ID.")
+        else:
+            # Handle the case where the input text is empty
+            print("ID input is empty.")
+    
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key.Key_F5:
             self.gameActionUI()
@@ -230,18 +338,18 @@ class MainWindow(QMainWindow):
         redTeamLayout.addWidget(self.redScore, 2, 8)
 
         # Add players to the layout
-        for i, player in enumerate(self.main.red_team, start=3): 
+        for i, player in enumerate(self.main.red_team, start=0): 
             playerNameLabel = QLabel(player.codename)
             playerNameLabel.setFont(userFont)
             playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
             playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            redTeamLayout.addWidget(playerNameLabel, i, 2)
+            redTeamLayout.addWidget(playerNameLabel, i + 2, 2)
 
             playerScoreLabel = QLabel("0")  # Replace with actual score retrieval
             playerScoreLabel.setFont(userFont)
             playerScoreLabel.setStyleSheet("color: red; background-color: transparent;")
             playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            redTeamLayout.addWidget(playerScoreLabel, i, 8)
+            redTeamLayout.addWidget(playerScoreLabel, i + 2, 8)
 
         return redTeamLayout
 
@@ -280,18 +388,18 @@ class MainWindow(QMainWindow):
         greenTeamLayout.addWidget(self.greenScore, 2, 8)  # Score header in the eighth column
 
         # Add players to the layout
-        for i, player in enumerate(self.main.green_team, start=3):  # Start at the third row
+        for i, player in enumerate(self.main.green_team, start=0):  # Start at the third row
             playerNameLabel = QLabel(player.codename)
             playerNameLabel.setFont(userFont)
             playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
             playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            greenTeamLayout.addWidget(playerNameLabel, i, 2)  # Player names in the second column
+            greenTeamLayout.addWidget(playerNameLabel, i +2, 2)  # Player names in the second column
 
             playerScoreLabel = QLabel("0")  # Placeholder for the score
             playerScoreLabel.setFont(userFont)
             playerScoreLabel.setStyleSheet("color: green; background-color: transparent;")
             playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            greenTeamLayout.addWidget(playerScoreLabel, i, 8)  # Player scores in the eighth column
+            greenTeamLayout.addWidget(playerScoreLabel, i+2, 8)  # Player scores in the eighth column
 
         return greenTeamLayout
 
