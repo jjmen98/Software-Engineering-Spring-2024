@@ -255,7 +255,7 @@ class MainWindow(QMainWindow):
         # print("HiFeed")
         return killfeedVerLayout
 
-    def setupRedTeam(self):
+    def setupRedTeam(self): 
         # Red Team Layout
         redTeamVerLayout = QVBoxLayout()
         redTeamHeaderLayout = QHBoxLayout()
