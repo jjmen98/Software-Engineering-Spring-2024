@@ -359,8 +359,20 @@ class MainWindow(QMainWindow):
     def timerOut(self):
         for i in range(3):
             self.main.udp_server.transmit_message("221")
+         #button return declaration
+        player_entry_button = QPushButton("Player entry screen", self.centralwidget)
+        player_entry_button.clicked.connect(self.player_entry_button)
 
-    #Call Jonathons Button
+        player_entry_button.setStyleSheet("background-color: white;")
+
+
+        #layout
+        self.gameActionLayout.addWidget(player_entry_button)
+
+
+    def player_entry_button(self):
+        self.setupUI()
+
 
 
     def gameActionUI(self):
