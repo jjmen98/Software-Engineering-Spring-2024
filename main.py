@@ -1,6 +1,6 @@
 # required imports
 import threading
-
+import random
 # inter-reference classes
 from src.Server import UDPServer
 from db.PlayerDB import PlayerDB
@@ -12,6 +12,7 @@ class Program:
         # initialize program objects/inter-references
         self.database = PlayerDB()  # initialize database connection
         self.udp_server = UDPServer(("127.0.0.1", 7500), ("127.0.0.1", 7501))  # set server sockets transmit over 7500, receive over 7501
+        self.ui = None # set bu ui.py
 
         # setup listening thread for udp socket
         try:
@@ -30,11 +31,12 @@ class Program:
 
     # Player object to hold player_id & equipment_id together
     class Player:
-        def __init__(self, player_id, codename, equipment_id, score):
+        def __init__(self, player_id, codename, equipment_id):
             self.player_id = player_id
             self.codename = codename
             self.equipment_id = equipment_id
-            self.score = score
+            self.score = 0
+            self.hit_base = False
 
     # Function for Thread that handles udp receive
     def udp_handler(self):
@@ -50,13 +52,29 @@ class Program:
             except Exception as e:
                 print("Error in udp_handler / udp daemon: ", e)
 
+    def sort_teams(self):
+        self.red_team.sort(key=lambda x: x.score, reverse=True)
+        self.green_team.sort(key=lambda x: x.score, reverse=True)
+
+    def randomize_scores(self):
+        for player in self.red_team:
+            player.score += random.randint(0,1)
+        for player in self.red_team:
+            player.score += random.randint(0, 1)
+
     # Function to insert players to teams and avoid duplicates
     def add_team_player(self, player: Player, team: str) -> bool:
         #choose team that play will be added to, either "red" for red_team or "green" for green_team
         active_team: list
         if team == "red":
+            if len(self.red_team) >= 15:
+                self.ui.alert_box("Max Number of Players in Red Team!")
+                return False
             active_team = self.red_team
         elif team == "green":
+            if len(self.green_team) >= 15:
+                self.ui.alert_box("Max Number of Players in Green Team!")
+                return False
             active_team = self.green_team
         else:
             print("ERROR: add_team_player: Invalid Team List")

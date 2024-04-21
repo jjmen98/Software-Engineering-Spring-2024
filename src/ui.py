@@ -21,13 +21,15 @@ class MainWindow(QMainWindow):
         super().__init__()
         # allows calls Database from self.main.database & UDP Server calls from self.main.udp_server
         self.main = backend
+        self.main.ui = self # sets file interconnect
         self.setWindowTitle("Photon | Team 16")
         self.setStyleSheet("background-color: rgb(0, 0, 0);")
         self.setupUI()
         self.setMinimumSize(800, 600)
         self.player = QMediaPlayer()
         self.audioOutput = QAudioOutput()
-        self.players_array = []
+        self.red_player_labels = []
+        self.green_player_labels = []
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -139,7 +141,7 @@ class MainWindow(QMainWindow):
         self.deleteGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
         self.deleteGameButton.setFixedSize(100, 20)
         buttonLayout2.addWidget(self.deleteGameButton)
-        self.deleteGameButton.clicked.connect(lambda: self.delete_all_players(self.players_array))
+        self.deleteGameButton.clicked.connect(lambda: self.delete_all_players())
 
         # Add button layout to outer layout
         outerLayout.addLayout(buttonLayout2, stretch=0)
@@ -150,10 +152,29 @@ class MainWindow(QMainWindow):
         # Set status bar
         self.setStatusBar(None)
 
+        #fill with teams? assuming there are is already teams
+        # Add the player to the appropriate layout based on equipment ID
+        for player in self.main.red_team:
+            self.add_player_to_red_team(player)
+        for player in self.main.green_team:
+            self.add_player_to_green_team(player)
+
+
+
     def codename_add_player(self):
         self.main.database.addPlayer(int(self.id_input.text()), self.codename_input.text())
 
-    def save_on_enter(self, players_array):
+
+    def alert_box(self, message):
+        alert = QDialog(self)
+        alert.setWindowTitle("ALERT")
+        alert.layout = QVBoxLayout()
+        alert.layout.addWidget(QLabel(message))
+        alert.setStyleSheet("font-size: 30px; color: white;")
+        alert.setLayout(alert.layout)
+        alert.exec()
+
+    def save_on_enter(self):
         # Get the input text from id_input and equipment_id_input widgets
         self.id_input.setEnabled(True)
         self.codename_input.setEnabled(False)
@@ -176,14 +197,12 @@ class MainWindow(QMainWindow):
                     self.codename_input.setText(foundPlayer["playerName"])
                     self.equipment_id_input.setEnabled(True)
                 elif self.codename_input.text() == "":
-                    print("INPUT CODENAME")
+                    self.alert_box("ID Not Found! Please Enter a Codename!")
                     self.codename_input.setEnabled(True)
                 else:
                     self.codename_add_player()
                     self.equipment_id_input.setEnabled(True)
                     print("ENTER EQUIPMENT ID")
-
-
 
 
                 # Check if equipment ID input text is not empty
@@ -192,41 +211,27 @@ class MainWindow(QMainWindow):
                         # Convert the equipment ID input text to an integer
                         equipment_id_value = int(equipment_id_text)
 
-                        # Create player info dictionary
-                        player_info = {
-                            "id": id_text,
-                            "codename": self.codename_input.text(),
-                            "equipment_id": equipment_id_value
-                        }
+                        #create Player Object
+                        player = self.main.Player(id_text, self.codename_input.text(), equipment_id_value)
+                        self.main.udp_server.transmit_message(equipment_id_text)
 
-                        # Check if the player already exists in the players_array
-                        if any(player["id"] == id_text for player in players_array):
-                            print("Player already exists.")
+                        # Add the player to the appropriate layout based on equipment ID
+                        if equipment_id_value % 2 == 1:
+                            # Add player to red team layout
+                            self.main.add_team_player(player, "red")
+                            self.add_player_to_red_team(player)
+
                             self.id_input.clear()
                             self.codename_input.clear()
                             self.equipment_id_input.clear()
                         else:
-                            # Add the player to the appropriate layout based on equipment ID
-                            if equipment_id_value % 2 == 1:
-                                # Add player to red team layout
-                                players_array.append(player_info)
-                                self.add_player_to_red_team(player_info)
+                            # Add player to green team layout
+                            self.main.add_team_player(player, "green")
+                            self.add_player_to_green_team(player)
 
-                                print(players_array)  # test
-
-                                self.id_input.clear()
-                                self.codename_input.clear()
-                                self.equipment_id_input.clear()
-                            else:
-                                # Add player to green team layout
-                                players_array.append(player_info)
-                                self.add_player_to_green_team(player_info)
-
-                                print(players_array) # test
-
-                                self.id_input.clear()
-                                self.codename_input.clear()
-                                self.equipment_id_input.clear()
+                            self.id_input.clear()
+                            self.codename_input.clear()
+                            self.equipment_id_input.clear()
                     except ValueError:
                         # Handle the case where the equipment ID input text cannot be converted to an integer
                         print("Invalid equipment ID. Please enter a valid integer equipment ID.")
@@ -239,9 +244,9 @@ class MainWindow(QMainWindow):
 
     def add_player_to_red_team(self, player_info):
         # Extract player information
-        id = player_info["id"]
-        codename = player_info["codename"]
-        equipment_id = player_info["equipment_id"]
+        id = player_info.player_id
+        codename = player_info.codename
+        equipment_id = player_info.equipment_id
 
         # Find the next empty box in the red team layout
         player_layout = self.find_next_empty_box(self.frame.layout())  # Access the layout of self.frame
@@ -257,9 +262,9 @@ class MainWindow(QMainWindow):
 
     def add_player_to_green_team(self, player_info):
         # Extract player information
-        id = player_info["id"]
-        codename = player_info["codename"]
-        equipment_id = player_info["equipment_id"]
+        id = player_info.player_id
+        codename = player_info.codename
+        equipment_id = player_info.equipment_id
 
         # Find the next empty box in the green team layout
         player_layout = self.find_next_empty_box(self.frame_2.layout())  # Access the layout of self.frame_2
@@ -297,12 +302,12 @@ class MainWindow(QMainWindow):
         if event.key() == Qt.Key.Key_F5:
             self.gameActionUI()
         elif event.key() == Qt.Key.Key_F12:
-            self.delete_all_players(self.players_array)
+            self.delete_all_players()
         if event.key() == Qt.Key.Key_Return:
-            self.save_on_enter(self.players_array)
+            self.save_on_enter()
 
-    def delete_all_players(self, players_array):
-        players_array.clear()  # Clear the players_array
+    def delete_all_players(self):
+        self.main.clear_teams()  # Clear the players_array
         self.clear_player_layout(self.frame.layout())
         self.clear_player_layout(self.frame_2.layout())
 
@@ -333,7 +338,7 @@ class MainWindow(QMainWindow):
                             id_label.setText("")
                             codename_label.setText("")
                             equipment_id_label.setText("")
-                            return
+
     # Start of Timer Methods
     def update_timer_display(self):
         self.remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
@@ -341,13 +346,37 @@ class MainWindow(QMainWindow):
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = 0 #max(0,6*60 - elapsed_seconds)
+        remaining_seconds = max(0,1*60 - elapsed_seconds) #FIX! 6 not 1
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
+        self.update_scores()
         if int(remaining_seconds) <= 0:
             self.timer.stop()
             self.timerOut()
         return f"{minutes:01} : {seconds:02}"
+
+    def update_scores(self):
+        self.main.randomize_scores()  # REMOVE WHEN SCORING WORKS
+        self.main.sort_teams()
+        # red team
+        current_label = 0
+        if  len(self.red_player_labels) > 0:
+            for player in self.main.red_team:
+                self.red_player_labels[current_label][0].setText(player.codename)
+                self.red_player_labels[current_label][1].setText(str(player.score))
+                if player.hit_base:
+                    self.red_player_labels[current_label][2].show()
+                current_label += 1
+        # green team
+        current_label = 0
+        if len(self.green_player_labels) > 0:
+            for player in self.main.green_team:
+                self.green_player_labels[current_label][0].setText(player.codename)
+                self.green_player_labels[current_label][1].setText(str(player.score))
+                if player.hit_base:
+                    self.green_player_labels[current_label][2].show()
+                current_label += 1
+
 
     def elapsed_time(self):
         current_time = time.time()
@@ -376,6 +405,9 @@ class MainWindow(QMainWindow):
 
 
     def gameActionUI(self):
+        #####REMOVE-LATER######
+        self.main.sort_teams()
+
         self.setVisible(False)
         self.countdown()
         self.setVisible(True)
@@ -386,23 +418,26 @@ class MainWindow(QMainWindow):
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
-        gameActionLayout = QVBoxLayout(self.centralwidget)
+        self.gameActionLayout = QVBoxLayout(self.centralwidget)
+
+        # Add Timer Layout
+        self.gameActionLayout.addWidget(self.timerLayout())
 
         # Setup for score displays
         self.redScoreBackground = QFrame()
         self.redScoreBackground.setStyleSheet("background-color: black;")
-        redScoreLayout = self.setupRedScoreLayout(self.players_array)
-        self.redScoreBackground.setLayout(redScoreLayout)
+        self.redScoreLayout = self.setupRedScoreLayout()
+        self.redScoreBackground.setLayout(self.redScoreLayout)
 
         self.greenScoreBackground = QFrame()
         self.greenScoreBackground.setStyleSheet("background-color: black;")
-        greenScoreLayout = self.setupGreenScoreLayout(self.players_array)
-        self.greenScoreBackground.setLayout(greenScoreLayout)
+        self.greenScoreLayout = self.setupGreenScoreLayout()
+        self.greenScoreBackground.setLayout(self.greenScoreLayout)
 
-        scoreLayout = QHBoxLayout()
-        scoreLayout.addWidget(self.redScoreBackground)
-        scoreLayout.addWidget(self.greenScoreBackground)
-        gameActionLayout.addLayout(scoreLayout)
+        self.scoreLayout = QHBoxLayout()
+        self.scoreLayout.addWidget(self.redScoreBackground)
+        self.scoreLayout.addWidget(self.greenScoreBackground)
+        self.gameActionLayout.addLayout(self.scoreLayout)
 
         # Setup for kill feed
         self.killFeedBackground = QFrame()
@@ -411,29 +446,33 @@ class MainWindow(QMainWindow):
         killFeedLayout = QHBoxLayout(self.killFeedBackground)
         scrollArea = self.setupKillFeedLayout()
         killFeedLayout.addWidget(scrollArea)
-        gameActionLayout.addWidget(self.killFeedBackground)
+        self.gameActionLayout.addWidget(self.killFeedBackground)
 
 
 
 
 
 
-        #currently not in use
+
     def timerLayout(self):
-        # Create a vertical layout for the timer label
-        timerLayout = QVBoxLayout()
+        # Timer, Can be moved to seperate method
+        self.start_time = time.time()
+        self.timer_label = QLabel("Timer")
+        # Initialize the timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_timer_display)
+        self.timer.start(1000)
 
         # Create and format the timer label
         self.timer_label = QLabel("Timer")
         self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align center horizontally
-        timerLayout.addWidget(self.timer_label)
 
-        return timerLayout
-
+        return self.timer_label
 
 
-    def setupRedScoreLayout(self, players_array):
+
+    def setupRedScoreLayout(self):
         redTeamLayout = QGridLayout()
         redTeamLayout.setSpacing(0)  # Eliminate spacing between cells
         redTeamLayout.setContentsMargins(0, 0, 0, 0)  # Eliminate margins within the layout
@@ -445,18 +484,6 @@ class MainWindow(QMainWindow):
         for i in range(1,15):
             for j in range(1,10):
                 redTeamLayout.addWidget(QLabel(" "),i,j)
-
-        #Timer, Can be moved to seperate method
-        self.start_time = time.time()
-        self.timer_label = QLabel("Timer")
-        self.timer_label.setStyleSheet("color: white; background-color: transparent; font-size: 12px;")
-        redTeamLayout.addWidget(self.timer_label, 0,5)
-        #gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
-        #gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
-        # Initialize the timer
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_timer_display)
-        self.timer.start(1000)
 
         # Red Team Title
         self.teamTitle = QLabel("RED TEAM")
@@ -472,34 +499,42 @@ class MainWindow(QMainWindow):
         self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
         redTeamLayout.addWidget(self.redUserID, 2, 2)
 
-        self.redScore = QLabel("Score:")
+        self.redScore = QLabel("SCORE:")
         self.redScore.setFont(font)
         self.redScore.setStyleSheet("color: red; background-color: transparent;")
         self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
         redTeamLayout.addWidget(self.redScore, 2, 8)
 
-
+        i=0
         # Add players to the layout
-        for i, player in enumerate(players_array, start=2):
-            if player["equipment_id"] % 2 == 1:
-                playerNameLabel = QLabel(player["codename"])
-                playerNameLabel.setFont(userFont)
-                playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
-                playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                redTeamLayout.addWidget(playerNameLabel, i, 2)
+        for player in self.main.red_team:
 
-                playerScoreLabel = QLabel("0")  # Replace with actual score retrieval
-                playerScoreLabel.setFont(userFont)
-                playerScoreLabel.setStyleSheet("color: red; background-color: transparent;")
-                playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                redTeamLayout.addWidget(playerScoreLabel, i, 8)
-            else:
-                continue
+            playerNameLabel = QLabel(player.codename)
+            playerNameLabel.setFont(userFont)
+            playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
+            playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            redTeamLayout.addWidget(playerNameLabel, i+3, 2)
+
+            playerScoreLabel = QLabel(str(player.score))  # Replace with actual score retrieval
+            playerScoreLabel.setFont(userFont)
+            playerScoreLabel.setStyleSheet("color: red; background-color: transparent;")
+            playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            redTeamLayout.addWidget(playerScoreLabel, i+3, 8)
+
+            baseHitLabel = QLabel()  # Replace with actual score retrieval
+            baseHitLabel.setFont(userFont)
+            baseHitLabel.setStyleSheet("color: red; background-color: transparent;")
+            baseHitLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
+            baseHitLabel.setPixmap(QPixmap("assets/splashscreen_game_sounds/pictures/redb.png").scaled(12, 18))
+            redTeamLayout.addWidget(baseHitLabel, i + 3, 1)
+            baseHitLabel.hide()
+            self.red_player_labels.append((playerNameLabel, playerScoreLabel, baseHitLabel))
+            i+=1
 
         return redTeamLayout
 
     ######GREEN######
-    def setupGreenScoreLayout(self, players_array):
+    def setupGreenScoreLayout(self):
         greenTeamLayout = QGridLayout()
 
         # Fonts
@@ -526,28 +561,37 @@ class MainWindow(QMainWindow):
         self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
         greenTeamLayout.addWidget(self.greenUserID, 2, 2)  # UserID header in the second column
 
-        self.greenScore = QLabel("Score:")
+        self.greenScore = QLabel("SCORE:")
         self.greenScore.setFont(font)
         self.greenScore.setStyleSheet("color: green; background-color: transparent;")
         self.greenScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
         greenTeamLayout.addWidget(self.greenScore, 2, 8)  # Score header in the eighth column
 
         # Add players to the layout
-        for i, player in enumerate(players_array, start=2):
-            if player["equipment_id"] % 2 == 1:
-                continue
-            else:
-                playerNameLabel = QLabel(player["codename"])  # Accessing the 'codename' key
-                playerNameLabel.setFont(userFont)
-                playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
-                playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                greenTeamLayout.addWidget(playerNameLabel, i, 2)  # Player names in the second column
+        i=0
+        for player in self.main.green_team:
 
-                playerScoreLabel = QLabel("0")  # Placeholder for the score
-                playerScoreLabel.setFont(userFont)
-                playerScoreLabel.setStyleSheet("color: green; background-color: transparent;")
-                playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                greenTeamLayout.addWidget(playerScoreLabel, i, 8)  # Player scores in the eighth column
+            playerNameLabel = QLabel(player.codename)  # Accessing the 'codename' key
+            playerNameLabel.setFont(userFont)
+            playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
+            playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            greenTeamLayout.addWidget(playerNameLabel, i+3, 2)  # Player names in the second column
+
+            playerScoreLabel = QLabel(str(player.score))  # Placeholder for the score
+            playerScoreLabel.setFont(userFont)
+            playerScoreLabel.setStyleSheet("color: green; background-color: transparent;")
+            playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            greenTeamLayout.addWidget(playerScoreLabel, i+3, 8)  # Player scores in the eighth column
+
+            baseHitLabel = QLabel()  # Replace with actual score retrieval
+            baseHitLabel.setFont(userFont)
+            baseHitLabel.setStyleSheet("color: red; background-color: transparent;")
+            baseHitLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
+            baseHitLabel.setPixmap(QPixmap("assets/splashscreen_game_sounds/pictures/greenb.png").scaled(10, 16))
+            greenTeamLayout.addWidget(baseHitLabel, i + 3, 1)
+            baseHitLabel.hide()
+            self.green_player_labels.append((playerNameLabel, playerScoreLabel, baseHitLabel))
+            i+=1
 
         return greenTeamLayout
 
@@ -776,8 +820,14 @@ class MainWindow(QMainWindow):
             # display splashscreen
             splash_display.blit(countdown_img, (0, 0))
             pygame.display.update()
-            # show for 3 seconds then close splashscreen
-            time.sleep(1)
+
+            # Get the current time in milliseconds
+            start_time = pygame.time.get_ticks()
+            # Busy-wait loop for one second to try and convince OS that program is still responding
+            while pygame.time.get_ticks() - start_time < 1000:
+                pygame.event.get()
+                pass  # Do nothing, just keep looping
+
         pygame.quit()
         # Transmit game Start Code
         self.main.udp_server.transmit_message("202")
