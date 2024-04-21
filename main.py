@@ -1,4 +1,5 @@
 # required imports
+import threading
 
 # inter-reference classes
 from src.Server import UDPServer
@@ -10,7 +11,15 @@ class Program:
     def __init__(self):
         # initialize program objects/inter-references
         self.database = PlayerDB()  # initialize database connection
-        self.udp_server = UDPServer(7500, 7501)  # set server sockets transmit over 7500, receive over 7501
+        self.udp_server = UDPServer(("127.0.0.1", 7500), ("127.0.0.1", 7501))  # set server sockets transmit over 7500, receive over 7501
+
+        # setup listening thread for udp socket
+        try:
+            self.udp_thread = threading.Thread(target=self.udp_handler, daemon=True)
+            print("Starting UDP Daemon")
+            self.udp_thread.start()
+        except Exception:
+            print(Exception)
 
         # initialize player lists, will hold player objects
         self.red_team = []
@@ -25,6 +34,20 @@ class Program:
             self.player_id = player_id
             self.codename = codename
             self.equipment_id = equipment_id
+
+    # Function for Thread that handles udp receive
+    def udp_handler(self):
+        while True:
+            try:
+                # get received message from udp server
+                message = self.udp_server.receive_message()
+                player_attacking, player_hit = message.split(':')
+                player_attacking = int(player_attacking)
+                player_hit = int(player_hit)
+                # !REPLACE WITH RELEVANT CODE!
+                #self.udp_server.transmit_message(str(player_hit))
+            except Exception as e:
+                print("Error in udp_handler / udp daemon: ", e)
 
     # Function to insert players to teams and avoid duplicates
     def add_team_player(self, player: Player, team: str) -> bool:
@@ -85,7 +108,7 @@ class Program:
             for member in self.green_team:
                 if player_id == member.player_id:
                     self.green_team.remove(member)
-                    player_removed = False
+                    player_removed = True
 
         return player_removed
 
