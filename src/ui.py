@@ -9,6 +9,8 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
 from PyQt6.QtCore import Qt, QSize, QUrl, QTimer
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
+
+
 #include <QMediaContent>
 
 
@@ -25,6 +27,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(800, 600)
         self.player = QMediaPlayer()
         self.audioOutput = QAudioOutput()
+        self.players_array = []
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -46,11 +49,11 @@ class MainWindow(QMainWindow):
         self.centralwidget = QWidget(self)
         self.setCentralWidget(self.centralwidget)
 
-        # Sets up outer layout... Superimposes the buttons ontop of the player entry layout
-        # mainLayout = QVBoxLayout(self.centralwidget)
+        # Sets up outer layout... Superimposes the buttons on top of the player entry layout
+        outerLayout = QVBoxLayout(self.centralwidget)
 
         # Sets up Player entry (inner) layout
-        playerEntryLayout = QHBoxLayout(self.centralwidget)
+        playerEntryLayout = QHBoxLayout()
 
         # Sets left background then superimposes Red Team's Layout
         self.frame = QFrame()  # frame is the leftmost red background picture
@@ -70,37 +73,17 @@ class MainWindow(QMainWindow):
         greenTeamLayout = self.setupGreenTeam()
         self.frame_2.setLayout(greenTeamLayout)
 
-        # Adds Background + Team Layouts
-        playerEntryLayout.addWidget(self.frame, 1)
-        playerEntryLayout.addWidget(self.frame_2, 1)
+        # Add team layouts to player entry layout
+        playerEntryLayout.addWidget(self.frame)
+        playerEntryLayout.addWidget(self.frame_2)
 
-        self.menubar = QMenuBar(self)
-        self.setMenuBar(self.menubar)
+        # Add player entry layout to outer layout
+        outerLayout.addLayout(playerEntryLayout)
 
-        self.menuPhoton = QMenu(self.menubar)
-        self.menuPhoton.setTitle("Photon")
+        # Create a layout for input boxes
+        inputLayout = QHBoxLayout()
 
-        self.menuTeam_16 = QMenu(self.menubar)
-        self.menuTeam_16.setTitle("Team 16")
-
-        self.menubar.addAction(self.menuPhoton.menuAction())
-        self.menubar.addAction(self.menuTeam_16.menuAction())
-
-        self.startGameButton = QPushButton("Start Game")
-        self.startGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
-        self.startGameButton.setFixedSize(100, 20)
-        playerEntryLayout.addWidget(self.startGameButton)
-        self.startGameButton.clicked.connect(self.gameActionUI)
-        self.setStatusBar(None)
-
-        self.deleteGameButton = QPushButton("Delete Game")
-        self.deleteGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
-        self.deleteGameButton.setFixedSize(100, 20)
-        playerEntryLayout.addWidget(self.deleteGameButton)
-        self.deleteGameButton.clicked.connect(self.delete_all_players)
-        self.setStatusBar(None)
-
-        # Create the QLineEdit widget
+        # Create the QLineEdit widgets
         self.id_input = QLineEdit()
         self.id_input.setPlaceholderText("ENTER ID")
         self.id_input.setStyleSheet("background-color: black; color: white;")
@@ -118,100 +101,241 @@ class MainWindow(QMainWindow):
         self.equipment_id_input.setStyleSheet("background-color: black; color: white;")
         self.equipment_id_input.setFixedSize(100, 50)
 
+        # Add input widgets to input layout
+        inputLayout.addWidget(self.id_input)
+        inputLayout.addWidget(self.codename_input)
+        inputLayout.addWidget(self.equipment_id_input)
 
-        # Get the layout of self.frame
-        central_widget_layout = self.centralwidget.layout()
+        # Add input layout to outer layout
+        outerLayout.addLayout(inputLayout)  # Add input layout to outer layout before setting its margins
 
-        # Add the QLineEdit widget to the layout of self.frame
-        central_widget_layout.addWidget(self.id_input)
-        central_widget_layout.addWidget(self.codename_input)
-        central_widget_layout.addWidget(self.equipment_id_input)
+        # Set margins for inputLayout
+        inputLayout.setContentsMargins(20, 0, 20, 20)
 
-        # Set alignment of the layout to center horizontally
-        central_widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        central_widget_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Create a layout for buttons
+        buttonLayout = QHBoxLayout()
 
-        if self.id_input.text() is not None:
-            self.id_input.returnPressed.connect(self.save_on_enter)
-        self.codename_input.returnPressed.connect(lambda: self.codename_add_player)
-        self.equipment_id_input.returnPressed.connect(self.add_player_to_team)
+        # Add buttons to button layout
+        self.addPlayerButton = QPushButton("Add Player")
+        self.addPlayerButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        self.addPlayerButton.setFixedSize(100, 20)
+        buttonLayout.addWidget(self.addPlayerButton)
+        self.addPlayerButton.clicked.connect(lambda: self.save_on_enter(self.players_array))
 
-    def add_player_to_team(self):
-        try:
-            equipment_id = int(self.equipment_id_input.text())
-            print("EQUIPMENT ID:", equipment_id)
-            if equipment_id % 2:
-                print("TEAM RED")
-                player_info = {
-                    "id": self.id_input.text(),
-                    "codename": self.codename_input.text(),
-                    "equipment_id": self.equipment_id_input.text()
-                }
-            else:
-                print("TEAM GREEN")
-        except ValueError:
-            if self.equipment_id_input.text() == "":
-                print("No equipment ID entered.")
-            else:
-                print("Not an integer.")
-                return
+        # Add button layout to outer layout
+        outerLayout.addLayout(buttonLayout, stretch=0)
+
+        # Create a layout for buttons
+        buttonLayout2 = QHBoxLayout()
+
+        # Add buttons to button layout
+        self.startGameButton = QPushButton("Start Game")
+        self.startGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        self.startGameButton.setFixedSize(100, 20)
+        buttonLayout2.addWidget(self.startGameButton)
+        self.startGameButton.clicked.connect(self.gameActionUI)
+
+        self.deleteGameButton = QPushButton("Delete Game")
+        self.deleteGameButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
+        self.deleteGameButton.setFixedSize(100, 20)
+        buttonLayout2.addWidget(self.deleteGameButton)
+        self.deleteGameButton.clicked.connect(lambda: self.delete_all_players(self.players_array))
+
+        # Add button layout to outer layout
+        outerLayout.addLayout(buttonLayout2, stretch=0)
+
+        # Set the outer layout to be the central widget's layout
+        self.centralwidget.setLayout(outerLayout)
+
+        # Set status bar
+        self.setStatusBar(None)
 
     def codename_add_player(self):
         self.main.database.addPlayer(int(self.id_input.text()), self.codename_input.text())
 
-    def save_on_enter(self):
-        # Get the input text from id_input widget
-        id_text = self.id_input.text()
+    def save_on_enter(self, players_array):
+        # Get the input text from id_input and equipment_id_input widgets
+        self.id_input.setEnabled(True)
+        self.codename_input.setEnabled(False)
+        self.equipment_id_input.setEnabled(False)
 
-        # Check if the input text is not empty
+        id_text = self.id_input.text()
+        equipment_id_text = self.equipment_id_input.text()
+
+        # Check if the ID input text is not empty
         if id_text:
             try:
-                # Convert the input text to an integer
+                # Convert the ID input text to an integer
                 id_value = int(id_text)
 
-                # Proceed with further logic using the integer value
+                # Check if a player with the given ID exists in the database
                 foundPlayer = self.main.database.getPlayer(id_value)
-                print(foundPlayer)
-                if foundPlayer["playerName"] == None:
-                    print("Need to add player.")
-                    self.codename_input.clear()
+
+                
+                if foundPlayer["playerName"] is not None:
+                    self.codename_input.setText(foundPlayer["playerName"])
+                    self.equipment_id_input.setEnabled(True)
+                elif self.codename_input.text() == "":
+                    print("INPUT CODENAME")
                     self.codename_input.setEnabled(True)
                 else:
-                    print("Player found.")
-                    print("ID:", id_value, "Codename:", foundPlayer["playerName"])
-                    self.codename_input.setText(foundPlayer["playerName"])
-                    self.codename_input.setEnabled(False)
+                    self.codename_add_player()
                     self.equipment_id_input.setEnabled(True)
+                    print("ENTER EQUIPMENT ID")
+
+
+                 
+
+                # Check if equipment ID input text is not empty
+                if equipment_id_text:
+                    try:
+                        # Convert the equipment ID input text to an integer
+                        equipment_id_value = int(equipment_id_text)
+
+                        # Create player info dictionary
+                        player_info = {
+                            "id": id_text,
+                            "codename": self.codename_input.text(),
+                            "equipment_id": equipment_id_value
+                        }
+
+                        # Check if the player already exists in the players_array
+                        if any(player["id"] == id_text for player in players_array):
+                            print("Player already exists.")
+                            self.id_input.clear()
+                            self.codename_input.clear()
+                            self.equipment_id_input.clear()
+                        else:
+                            # Add the player to the appropriate layout based on equipment ID
+                            if equipment_id_value % 2 == 1:
+                                # Add player to red team layout 
+                                players_array.append(player_info)
+                                self.add_player_to_red_team(player_info)
+
+                                print(players_array)  # test
+
+                                self.id_input.clear()
+                                self.codename_input.clear()
+                                self.equipment_id_input.clear()
+                            else:
+                                # Add player to green team layout
+                                players_array.append(player_info)
+                                self.add_player_to_green_team(player_info)
+
+                                print(players_array) # test
+
+                                self.id_input.clear()
+                                self.codename_input.clear()
+                                self.equipment_id_input.clear()
+                    except ValueError:
+                        # Handle the case where the equipment ID input text cannot be converted to an integer
+                        print("Invalid equipment ID. Please enter a valid integer equipment ID.")
             except ValueError:
-                # Handle the case where the input text cannot be converted to an integer
+                # Handle the case where the ID input text cannot be converted to an integer
                 print("Invalid input. Please enter a valid integer ID.")
         else:
-            # Handle the case where the input text is empty
+            # Handle the case where the ID input text is empty
             print("ID input is empty.")
+
+    def add_player_to_red_team(self, player_info):
+        # Extract player information
+        id = player_info["id"]
+        codename = player_info["codename"]
+        equipment_id = player_info["equipment_id"]
+
+        # Find the next empty box in the red team layout
+        player_layout = self.find_next_empty_box(self.frame.layout())  # Access the layout of self.frame
+
+        if player_layout:
+            # Get the QLabel widgets representing ID, codename, and equipment ID
+            id_label, codename_label, equipment_id_label = player_layout
+
+            # Update the QLabel widgets with player information
+            id_label.setText(id)
+            codename_label.setText(codename)
+            equipment_id_label.setText(str(equipment_id))
+
+    def add_player_to_green_team(self, player_info):
+        # Extract player information
+        id = player_info["id"]
+        codename = player_info["codename"]
+        equipment_id = player_info["equipment_id"]
+
+        # Find the next empty box in the green team layout
+        player_layout = self.find_next_empty_box(self.frame_2.layout())  # Access the layout of self.frame_2
+
+        if player_layout:
+            # Get the QLabel widgets representing ID, codename, and equipment ID
+            id_label, codename_label, equipment_id_label = player_layout
+
+            # Update the QLabel widgets with player information
+            id_label.setText(id)
+            codename_label.setText(codename)
+            equipment_id_label.setText(str(equipment_id))
+
+    def find_next_empty_box(self, team_layout):
+        # Iterate through the children of the team layout to find the next empty box
+        for i in range(team_layout.count()):
+            player_layout_item = team_layout.itemAt(i)
+            if player_layout_item and player_layout_item.layout():
+                # Access the QHBoxLayout representing the player layout
+                player_layout = player_layout_item.layout()
+                
+                # Check if the layout contains enough items
+                if player_layout.count() >= 4:  # Assuming we need at least 4 items (including QLabel and QWidgets)
+                    # Access the QLabel widgets representing ID, codename, and equipment ID
+                    id_label = player_layout.itemAt(1).widget()  # Assuming the ID label is at index 1
+                    codename_label = player_layout.itemAt(2).widget()  # Assuming the codename label is at index 2
+                    equipment_id_label = player_layout.itemAt(3).widget()  # Assuming the equipment ID label is at index 3
+                    if id_label and id_label.text() == "":
+                        return id_label, codename_label, equipment_id_label
+        return None
+
+    
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key.Key_F5:
-            self.gameActionUI()
+            self.gameActionUI(self.players_array)
         elif event.key() == Qt.Key.Key_F12:
-            self.delete_all_players()
+            self.delete_all_players(self.players_array)
+        if event.key() == Qt.Key.Key_Return:
+            self.save_on_enter(self.players_array)
 
-    def delete_all_players(self):
-        self.clear_player_entries()
-        self.main.clear_teams()
+    def delete_all_players(self, players_array):
+        players_array.clear()  # Clear the players_array
+        self.clear_player_layout(self.frame.layout())
+        self.clear_player_layout(self.frame_2.layout())
 
-    def clear_player_entries(self):
-        # Implement logic to clear player entries from the UI
-        # For example:
-        for id_input, codename_input, equipment_id_input in self.players_red:
-            id_input.clear()
-            codename_input.clear()
-            equipment_id_input.clear()
+    def clear_player_layout(self, team_layout):
+        # Iterate through the children of the team layout to find the next empty box
+        for i in range(team_layout.count()):
+            player_layout_item = team_layout.itemAt(i)
+            if player_layout_item and player_layout_item.layout():
+                # Access the QHBoxLayout representing the player layout
+                player_layout = player_layout_item.layout()
+                
+                # Check if the layout contains enough items
+                if player_layout.count() >= 4:  # Assuming we need at least 4 items (including QLabel and QWidgets)
+                    # Access the QLabel widgets representing ID, codename, and equipment ID
+                    id_label_item = player_layout.itemAt(1)  # Assuming the ID label is at index 1
+                    codename_label_item = player_layout.itemAt(2)  # Assuming the codename label is at index 2
+                    equipment_id_label_item = player_layout.itemAt(3)  # Assuming the equipment ID label is at index 3
+                    
+                    # Check if layout items are not None before accessing widgets
+                    if id_label_item and codename_label_item and equipment_id_label_item:
+                        id_label = id_label_item.widget()
+                        codename_label = codename_label_item.widget()
+                        equipment_id_label = equipment_id_label_item.widget()
+                        
+                        # Check if labels are not None before accessing text
+                        if id_label and codename_label and equipment_id_label:
+                            # Clear the text of the labels
+                            id_label.setText("")
+                            codename_label.setText("")
+                            equipment_id_label.setText("")
+                            return
 
-        for id_input, codename_input, equipment_id_input in self.players_green:
-            id_input.clear()
-            codename_input.clear()
-            equipment_id_input.clear()
-
+    
     def gameActionUI(self):
         self.setVisible(False)
         self.countdown()
@@ -227,8 +351,8 @@ class MainWindow(QMainWindow):
         gameActionLayout = QVBoxLayout(self.centralwidget)
 
         # Set up layouts
-        redScoreLayout = self.setupRedScoreLayout()
-        greenScoreLayout = self.setupGreenScoreLayout()
+        redScoreLayout = self.setupRedScoreLayout(self.players_array)
+        greenScoreLayout = self.setupGreenScoreLayout(self.players_array)
         killFeedLayout = self.setupKillFeedLayout()
 
         # Add backgrounds and layouts
@@ -257,7 +381,7 @@ class MainWindow(QMainWindow):
         gameActionLayout.addLayout(scoreLayout)
         gameActionLayout.addWidget(self.killFeedBackground)
 
-    def setupRedScoreLayout(self):
+    def setupRedScoreLayout(self, players_array):
         redTeamLayout = QGridLayout()
 
         # Fonts
@@ -289,24 +413,28 @@ class MainWindow(QMainWindow):
         self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
         redTeamLayout.addWidget(self.redScore, 1, 8)
 
+        
         # Add players to the layout
-        for i, player in enumerate(self.main.red_team, start=3):
-            playerNameLabel = QLabel(player.codename)
-            playerNameLabel.setFont(userFont)
-            playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
-            playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            redTeamLayout.addWidget(playerNameLabel, i, 2)
+        for i, player in enumerate(players_array, start=2):
+            if player["equipment_id"] % 2 == 1:
+                playerNameLabel = QLabel(player["codename"])
+                playerNameLabel.setFont(userFont)
+                playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
+                playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                redTeamLayout.addWidget(playerNameLabel, i, 2)
 
-            playerScoreLabel = QLabel("0")  # Replace with actual score retrieval
-            playerScoreLabel.setFont(userFont)
-            playerScoreLabel.setStyleSheet("color: red; background-color: transparent;")
-            playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            redTeamLayout.addWidget(playerScoreLabel, i, 8)
-
+                playerScoreLabel = QLabel("0")  # Replace with actual score retrieval
+                playerScoreLabel.setFont(userFont)
+                playerScoreLabel.setStyleSheet("color: red; background-color: transparent;")
+                playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                redTeamLayout.addWidget(playerScoreLabel, i, 8)
+            else:
+                continue
+            
         return redTeamLayout
 
     ######GREEN######
-    def setupGreenScoreLayout(self):
+    def setupGreenScoreLayout(self, players_array):
         greenTeamLayout = QGridLayout()
 
         # Fonts
@@ -340,18 +468,21 @@ class MainWindow(QMainWindow):
         greenTeamLayout.addWidget(self.greenScore, 1, 8)  # Score header in the eighth column
 
         # Add players to the layout
-        for i, player in enumerate(self.main.green_team, start=3):  # Start at the third row
-            playerNameLabel = QLabel(player.codename)
-            playerNameLabel.setFont(userFont)
-            playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
-            playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            greenTeamLayout.addWidget(playerNameLabel, i, 2)  # Player names in the second column
+        for i, player in enumerate(players_array, start=2):
+            if player["equipment_id"] % 2 == 1:
+                continue
+            else:
+                playerNameLabel = QLabel(player["codename"])  # Accessing the 'codename' key
+                playerNameLabel.setFont(userFont)
+                playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
+                playerNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                greenTeamLayout.addWidget(playerNameLabel, i, 2)  # Player names in the second column
 
-            playerScoreLabel = QLabel("0")  # Placeholder for the score
-            playerScoreLabel.setFont(userFont)
-            playerScoreLabel.setStyleSheet("color: green; background-color: transparent;")
-            playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            greenTeamLayout.addWidget(playerScoreLabel, i, 8)  # Player scores in the eighth column
+                playerScoreLabel = QLabel("0")  # Placeholder for the score
+                playerScoreLabel.setFont(userFont)
+                playerScoreLabel.setStyleSheet("color: green; background-color: transparent;")
+                playerScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                greenTeamLayout.addWidget(playerScoreLabel, i, 8)  # Player scores in the eighth column
 
         return greenTeamLayout
 
@@ -528,16 +659,14 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "Invalid Input", "Please enter a valid Player ID (integer).")
 
     def prompt_equipment_id(self):
-       def prompt_equipment_id(self):
-        equipment_id, ok = QLineEdit.getText("Equipment ID Prompt", "Enter Equipment ID:")
+        equipment_id, ok = QInputDialog.getText(self, "Equipment ID Prompt", "Enter Equipment ID:")
         if ok:
-            # Logic to handle the equipment ID input
             try:
                 equipment_id = int(equipment_id)
-                # Perform further actions with the equipment ID as needed
+                return equipment_id
             except ValueError:
                 QMessageBox.warning(self, "Invalid Input", "Please enter a valid Equipment ID (integer).")
-        pass
+        return None
 
     def countdown(self):
         #Show countdown images
@@ -572,30 +701,24 @@ class MainWindow(QMainWindow):
         return 1
 
     def save_players_ui(self, team_color):
-    # Convert input data to active Player objects and store them in backend lists
         try:
-            # Handle red team players
             if team_color == "red":
                 for id_input, codename_input, equipment_id_input in self.players_red:
                     player_id_text = id_input.text().strip()
-                    # Check if player ID is provided
                     if player_id_text:
                         try:
-                            # Perform Supabase search using player ID
                             db_search = self.main.database.getPlayer(int(player_id_text))
-                            # If player is found in Supabase, prompt for codename and equipment ID
                             if not db_search['needsAdding']:
                                 codename_input.setText(str(db_search['playerName']))
                                 equipment_id_input.setFocus()  # Set focus to equipment ID input
                             else:
-                                # Prompt user to input codename and equipment ID using QInputDialog
                                 dialog = QInputDialog(self)
                                 dialog.setInputMode(QInputDialog.InputMode.TextInput)
                                 dialog.setLabelText("Enter Codename:")
                                 dialog.setWindowTitle("Player Information")
                                 dialog.setOkButtonText("Next")
                                 dialog.setCancelButtonText("Cancel")
-                                dialog.setStyleSheet("color: white;")  # Set font color
+                                dialog.setStyleSheet("color: white;")
                                 result = dialog.exec()
                                 if result == QDialog.DialogCode.Accepted:
                                     codename = dialog.textValue()
@@ -607,42 +730,32 @@ class MainWindow(QMainWindow):
                                         equipment_id_input.setText(equipment_id)
                                         # add player to database
                                         self.main.database.addPlayer(int(player_id_text), codename)
-                            # create player for team list
                             player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(),
-                                                      int(equipment_id_input.text().strip()))
-                            # add to player list, check if already in game.
+                                                    int(equipment_id_input.text().strip()))
                             added = self.main.add_team_player(player, "red")
                             if not added:
                                 print("save_players_ui: Player already added")
-                            # transmit equipment code
                             equipment_id = equipment_id_input.text().strip()
                             self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
-                pass
-
-            # Handle green team players
             elif team_color == "green":
                 for id_input, codename_input, equipment_id_input in self.players_green:
                     player_id_text = id_input.text().strip()
-                    # Check if player ID is provided
                     if player_id_text:
                         try:
-                            # Perform Supabase search using player ID
                             db_search = self.main.database.getPlayer(int(player_id_text))
-                            # If player is found in Supabase, prompt for equipment ID
                             if not db_search['needsAdding']:
                                 codename_input.setText(str(db_search['playerName']))
                                 equipment_id_input.setFocus()  # Set focus to equipment ID input
                             else:
-                                # Prompt user to input codename and equipment ID using QInputDialog
                                 dialog = QInputDialog(self)
                                 dialog.setInputMode(QInputDialog.InputMode.TextInput)
                                 dialog.setLabelText("Enter Codename:")
                                 dialog.setWindowTitle("Player Information")
                                 dialog.setOkButtonText("Next")
                                 dialog.setCancelButtonText("Cancel")
-                                dialog.setStyleSheet("color: white;")  # Set font color
+                                dialog.setStyleSheet("color: white;")
                                 result = dialog.exec()
                                 if result == QDialog.DialogCode.Accepted:
                                     codename = dialog.textValue()
@@ -654,18 +767,15 @@ class MainWindow(QMainWindow):
                                         equipment_id_input.setText(equipment_id)
                                         # add player to database
                                         self.main.database.addPlayer(int(player_id_text), codename)
-                            # create player for team list
-                            player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(), int(equipment_id_input.text().strip()))
-                            # add to player list, check if already in game.
+                            player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(),
+                                                    int(equipment_id_input.text().strip()))
                             added = self.main.add_team_player(player, "green")
                             if not added:
                                 print("save_players_ui: Player already added")
-                            # transmit equipment code
                             equipment_id = equipment_id_input.text().strip()
                             self.main.udp_server.transmit_message(equipment_id)
                         except ValueError:
                             print("Player ID must be an integer.")
-                pass
         except Exception as e:
             print("Error occurred while saving data to Supabase:", e)
 
