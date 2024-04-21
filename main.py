@@ -30,10 +30,11 @@ class Program:
 
     # Player object to hold player_id & equipment_id together
     class Player:
-        def __init__(self, player_id, codename, equipment_id):
+        def __init__(self, player_id, codename, equipment_id, score):
             self.player_id = player_id
             self.codename = codename
             self.equipment_id = equipment_id
+            self.score = score
 
     # Function for Thread that handles udp receive
     def udp_handler(self):
