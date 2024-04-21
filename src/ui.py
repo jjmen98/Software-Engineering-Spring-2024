@@ -4,10 +4,9 @@ import pygame
 import time
 import random
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
-    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog
-
+    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog, QScrollArea
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
-from PyQt6.QtCore import Qt, QSize, QUrl, QTimer
+from PyQt6.QtCore import Qt, QSize, QTimer, QUrl
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
 
 
@@ -171,7 +170,7 @@ class MainWindow(QMainWindow):
                 # Check if a player with the given ID exists in the database
                 foundPlayer = self.main.database.getPlayer(id_value)
 
-                
+
                 if not foundPlayer["needsAdding"]:
                     self.codename_input.setText(foundPlayer["playerName"])
                     self.equipment_id_input.setEnabled(True)
@@ -184,7 +183,7 @@ class MainWindow(QMainWindow):
                     print("ENTER EQUIPMENT ID")
 
 
-                 
+
 
                 # Check if equipment ID input text is not empty
                 if equipment_id_text:
@@ -208,7 +207,7 @@ class MainWindow(QMainWindow):
                         else:
                             # Add the player to the appropriate layout based on equipment ID
                             if equipment_id_value % 2 == 1:
-                                # Add player to red team layout 
+                                # Add player to red team layout
                                 players_array.append(player_info)
                                 self.add_player_to_red_team(player_info)
 
@@ -280,7 +279,7 @@ class MainWindow(QMainWindow):
             if player_layout_item and player_layout_item.layout():
                 # Access the QHBoxLayout representing the player layout
                 player_layout = player_layout_item.layout()
-                
+
                 # Check if the layout contains enough items
                 if player_layout.count() >= 4:  # Assuming we need at least 4 items (including QLabel and QWidgets)
                     # Access the QLabel widgets representing ID, codename, and equipment ID
@@ -291,7 +290,7 @@ class MainWindow(QMainWindow):
                         return id_label, codename_label, equipment_id_label
         return None
 
-    
+
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key.Key_F5:
@@ -313,20 +312,20 @@ class MainWindow(QMainWindow):
             if player_layout_item and player_layout_item.layout():
                 # Access the QHBoxLayout representing the player layout
                 player_layout = player_layout_item.layout()
-                
+
                 # Check if the layout contains enough items
                 if player_layout.count() >= 4:  # Assuming we need at least 4 items (including QLabel and QWidgets)
                     # Access the QLabel widgets representing ID, codename, and equipment ID
                     id_label_item = player_layout.itemAt(1)  # Assuming the ID label is at index 1
                     codename_label_item = player_layout.itemAt(2)  # Assuming the codename label is at index 2
                     equipment_id_label_item = player_layout.itemAt(3)  # Assuming the equipment ID label is at index 3
-                    
+
                     # Check if layout items are not None before accessing widgets
                     if id_label_item and codename_label_item and equipment_id_label_item:
                         id_label = id_label_item.widget()
                         codename_label = codename_label_item.widget()
                         equipment_id_label = equipment_id_label_item.widget()
-                        
+
                         # Check if labels are not None before accessing text
                         if id_label and codename_label and equipment_id_label:
                             # Clear the text of the labels
@@ -334,8 +333,35 @@ class MainWindow(QMainWindow):
                             codename_label.setText("")
                             equipment_id_label.setText("")
                             return
+        # Start of Timer Methods
+        def update_timer_display(self):
+            self.remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
+            self.timer_label.setText(f"Time Remaining: {self.remaining_time}")
 
-    
+        def calculate_remaining_time(self):
+            elapsed_seconds = self.elapsed_time()
+            remaining_seconds = max(0,6*60 - elapsed_seconds)
+            minutes = int(remaining_seconds // 60)
+            seconds = int(remaining_seconds % 60)
+            if int(remaining_seconds) <= 0:
+                self.timer.stop()
+                self.timerOut()
+            return f"{minutes:01} : {seconds:02}"
+
+        def elapsed_time(self):
+            current_time = time.time()
+            elapsed_seconds = current_time - self.start_time
+            return elapsed_seconds
+
+        #End of Timer Method
+        #Game End message after timer runs out, Call Jonathons button
+        def timerOut(self):
+            for i in range(3):
+                self.main.udp_server.transmit_message("221")
+
+        #Call Jonathons Button
+
+
     def gameActionUI(self):
         self.setVisible(False)
         self.countdown()
@@ -347,43 +373,57 @@ class MainWindow(QMainWindow):
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
-
         gameActionLayout = QVBoxLayout(self.centralwidget)
 
-        # Set up layouts
-        redScoreLayout = self.setupRedScoreLayout(self.players_array)
-        greenScoreLayout = self.setupGreenScoreLayout(self.players_array)
-        killFeedLayout = self.setupKillFeedLayout()
-
-        # Add backgrounds and layouts
-        self.killFeedBackground = QFrame()  # frame is the leftmost red background picture
-        self.killFeedBackground.setStyleSheet("background-color: blue;")
-        self.killFeedBackground.setContentsMargins(0, 20, 0,
-                                                   20)  # To compensate for the table margins (Left, Up, Right, Down)
-        self.killFeedBackground.setLayout(killFeedLayout)
-
-        self.redScoreBackground = QFrame()  # frame is the leftmost red background picture
+        # Setup for score displays
+        self.redScoreBackground = QFrame()
         self.redScoreBackground.setStyleSheet("background-color: black;")
-        self.redScoreBackground.setContentsMargins(0, 0, 0,
-                                                   0)  # To compensate for the table margins (Left, Up, Right, Down)
+        redScoreLayout = self.setupRedScoreLayout()
         self.redScoreBackground.setLayout(redScoreLayout)
 
-        self.greenScoreBackground = QFrame()  # frame is the leftmost red background picture
+        self.greenScoreBackground = QFrame()
         self.greenScoreBackground.setStyleSheet("background-color: black;")
-        self.greenScoreBackground.setContentsMargins(0, 0, 0,
-                                                     0)  # To compensate for the table margins (Left, Up, Right, Down)
+        greenScoreLayout = self.setupGreenScoreLayout()
         self.greenScoreBackground.setLayout(greenScoreLayout)
 
         scoreLayout = QHBoxLayout()
         scoreLayout.addWidget(self.redScoreBackground)
         scoreLayout.addWidget(self.greenScoreBackground)
-
         gameActionLayout.addLayout(scoreLayout)
+
+        # Setup for kill feed
+        self.killFeedBackground = QFrame()
+        self.killFeedBackground.setStyleSheet("background-color: blue;")
+        self.killFeedBackground.setContentsMargins(0, 20, 0, 20)
+        killFeedLayout = QHBoxLayout(self.killFeedBackground)
+        scrollArea = self.setupKillFeedLayout()
+        killFeedLayout.addWidget(scrollArea)
         gameActionLayout.addWidget(self.killFeedBackground)
+
+
+
+
+
+
+        #currently not in use
+    def timerLayout(self):
+        # Create a vertical layout for the timer label
+        timerLayout = QVBoxLayout()
+
+        # Create and format the timer label
+        self.timer_label = QLabel("Timer")
+        self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align center horizontally
+        timerLayout.addWidget(self.timer_label)
+
+        return timerLayout
+
+
 
     def setupRedScoreLayout(self, players_array):
         redTeamLayout = QGridLayout()
-
+        redTeamLayout.setSpacing(0)  # Eliminate spacing between cells
+        redTeamLayout.setContentsMargins(0, 0, 0, 0)  # Eliminate margins within the layout
         # Fonts
         font = QFont("Arial", 10, QFont.Weight.Bold)
         userFont = QFont("Arial", 8)
@@ -393,27 +433,39 @@ class MainWindow(QMainWindow):
             for j in range(1,10):
                 redTeamLayout.addWidget(QLabel(" "),i,j)
 
+        #Timer, Can be moved to seperate method
+        self.start_time = time.time()
+        self.timer_label = QLabel("Timer")
+        self.timer_label.setStyleSheet("color: white; background-color: transparent; font-size: 12px;")
+        redTeamLayout.addWidget(self.timer_label, 0,5)
+        #gameActionLayout.setContentsMargins(0, 20, 0, 20)  # Adjust top and bottom margins
+        #gameActionLayout.setSpacing(10)  # Adjust spacing between widgets
+        # Initialize the timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_timer_display)
+        self.timer.start(1000)
+
         # Red Team Title
         self.teamTitle = QLabel("RED TEAM")
         self.teamTitle.setFont(titleFont)
         self.teamTitle.setStyleSheet("color: red; background-color: transparent;")
         self.teamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        redTeamLayout.addWidget(self.teamTitle, 0, 5)  # Span the title over 3 columns for better centering
+        redTeamLayout.addWidget(self.teamTitle, 1, 5)  # Span the title over 3 columns for better centering
 
         # Column Headers
         self.redUserID = QLabel("CODENAME:")
         self.redUserID.setFont(font)
         self.redUserID.setStyleSheet("color: red; background-color: transparent;")
         self.redUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        redTeamLayout.addWidget(self.redUserID, 1, 2)
+        redTeamLayout.addWidget(self.redUserID, 2, 2)
 
         self.redScore = QLabel("Score:")
         self.redScore.setFont(font)
         self.redScore.setStyleSheet("color: red; background-color: transparent;")
         self.redScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        redTeamLayout.addWidget(self.redScore, 1, 8)
+        redTeamLayout.addWidget(self.redScore, 2, 8)
 
-        
+
         # Add players to the layout
         for i, player in enumerate(players_array, start=2):
             if player["equipment_id"] % 2 == 1:
@@ -430,7 +482,7 @@ class MainWindow(QMainWindow):
                 redTeamLayout.addWidget(playerScoreLabel, i, 8)
             else:
                 continue
-            
+
         return redTeamLayout
 
     ######GREEN######
@@ -452,20 +504,20 @@ class MainWindow(QMainWindow):
         self.greenteamTitle.setFont(titleFont)
         self.greenteamTitle.setStyleSheet("color: green; background-color: transparent;")
         self.greenteamTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        greenTeamLayout.addWidget(self.greenteamTitle, 0, 5)  # Title at the top, spanning columns as needed
+        greenTeamLayout.addWidget(self.greenteamTitle, 1, 5)  # Title at the top, spanning columns as needed
 
         # Column Headers
         self.greenUserID = QLabel("CODENAME:")
         self.greenUserID.setFont(font)
         self.greenUserID.setStyleSheet("color: green; background-color: transparent;")
         self.greenUserID.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        greenTeamLayout.addWidget(self.greenUserID, 1, 2)  # UserID header in the second column
+        greenTeamLayout.addWidget(self.greenUserID, 2, 2)  # UserID header in the second column
 
         self.greenScore = QLabel("Score:")
         self.greenScore.setFont(font)
         self.greenScore.setStyleSheet("color: green; background-color: transparent;")
         self.greenScore.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        greenTeamLayout.addWidget(self.greenScore, 1, 8)  # Score header in the eighth column
+        greenTeamLayout.addWidget(self.greenScore, 2, 8)  # Score header in the eighth column
 
         # Add players to the layout
         for i, player in enumerate(players_array, start=2):
@@ -487,16 +539,32 @@ class MainWindow(QMainWindow):
         return greenTeamLayout
 
     def setupKillFeedLayout(self):
-        killfeedVerLayout = QVBoxLayout()
-        killfeedHorLayout = QHBoxLayout()
 
-        killfeedHorLayout.setContentsMargins(20, 0, 70, 0)  # Margin spacers: (Left, Up, Right, Down)
-        killfeedHorLayout.addStretch(1)
+        scrollArea = QScrollArea(self.centralwidget)
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        killfeedVerLayout.addLayout(killfeedHorLayout)
+        scrollAreaWidgetContents = QWidget()
+        scrollArea.setStyleSheet("background: transparent;")
+        scrollAreaWidgetContents.setStyleSheet("background: transparent;")
+        scrollArea.setWidget(scrollAreaWidgetContents)
 
-        # print("HiFeed")
-        return killfeedVerLayout
+
+        # Fonts
+        font = QFont("Arial", 10, QFont.Weight.Bold)
+        userFont = QFont("Arial", 8)
+        titleFont = QFont("Arial", 14, QFont.Weight.Bold)
+
+        killFeedLayout = QGridLayout()
+        scrollAreaWidgetContents.setLayout(killFeedLayout)
+
+        for i in range(1,15):
+            for j in range(1,10):
+                killFeedLayout.addWidget(QLabel(" "),i,j)
+
+
+        return scrollArea
 
     def setupRedTeam(self):
         # Red Team Layout
