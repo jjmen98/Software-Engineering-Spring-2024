@@ -346,7 +346,7 @@ class MainWindow(QMainWindow):
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = max(0,1*60 - elapsed_seconds) #FIX! 6 not 1
+        remaining_seconds = max(0,6*60 - elapsed_seconds)
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
         self.update_scores()
@@ -356,16 +356,16 @@ class MainWindow(QMainWindow):
         return f"{minutes:01} : {seconds:02}"
 
     def update_scores(self):
-        self.main.randomize_scores()  # REMOVE WHEN SCORING WORKS
-        self.main.sort_teams()
         # red team
         current_label = 0
-        if  len(self.red_player_labels) > 0:
+        if len(self.red_player_labels) > 0:
             for player in self.main.red_team:
                 self.red_player_labels[current_label][0].setText(player.codename)
                 self.red_player_labels[current_label][1].setText(str(player.score))
                 if player.hit_base:
                     self.red_player_labels[current_label][2].show()
+                else:
+                    self.red_player_labels[current_label][2].hide()
                 current_label += 1
         # green team
         current_label = 0
@@ -375,6 +375,8 @@ class MainWindow(QMainWindow):
                 self.green_player_labels[current_label][1].setText(str(player.score))
                 if player.hit_base:
                     self.green_player_labels[current_label][2].show()
+                else:
+                    self.green_player_labels[current_label][2].hide()
                 current_label += 1
 
 
@@ -800,7 +802,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(2, -1, -1):
+        for i in range(30, -1, -1):
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))

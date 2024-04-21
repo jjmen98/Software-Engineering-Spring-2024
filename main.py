@@ -37,6 +37,8 @@ class Program:
             self.equipment_id = equipment_id
             self.score = 0
             self.hit_base = False
+            self.last_hit = -1
+            self.last_hit_times = 0
 
     # Function for Thread that handles udp receive
     def udp_handler(self):
@@ -47,8 +49,81 @@ class Program:
                 player_attacking, player_hit = message.split(':')
                 player_attacking = int(player_attacking)
                 player_hit = int(player_hit)
-                # !REPLACE WITH RELEVANT CODE!
-                #self.udp_server.transmit_message(str(player_hit))
+
+                # message to transmit (if None, don't transmit)
+                transmit_msg = -1
+
+                # check for bases
+                # red base hit
+                if player_hit == 53 and player_attacking % 2 == 0:
+                    for player in self.green_team:
+                        if not (player.last_hit == player_hit and player.last_hit_times >= 3):
+                            player.score += 100
+                            player.hit_base = True
+                            player.last_hit = player_hit
+                            player.last_hit_times += 1
+                # green base hit
+                elif player_hit == 43 and player_attacking % 2 == 1:
+                    for player in self.red_team:
+                        if player.equipment_id == player_attacking:
+                            if not (player.last_hit == player_hit and player.last_hit_times >=3):
+                                player.score += 100
+                                player.hit_base = True
+                                player.last_hit = player_hit
+                                player.last_hit_times += 1
+
+                # check who got hit, even is green, odd is red,
+                else:
+                    hit_team = "False"
+                    attacking_team = "False"
+                    if player_hit % 2 == 1:
+                        hit_team = "red"
+                    else:
+                        hit_team = "green"
+                    if player_attacking % 2 == 1:
+                        attacking_team = "red"
+                    else:
+                        attacking_team = "green"
+                    # deal with same team hits
+                    if hit_team == attacking_team:
+                        # find player object to update
+                        if attacking_team == "red":
+                            for player in self.red_team:
+                                if player.equipment_id == player_attacking:
+                                    player.score -= 10
+                                    transmit_msg = player_attacking
+                        else:
+                            for player in self.green_team:
+                                if player.equipment_id == player_attacking:
+                                    player.score -= 10
+                                    transmit_msg = player_attacking
+
+                    # deal with enemy team hits
+                    else:
+                        if attacking_team == "red":
+                            for player in self.red_team:
+                                if player.equipment_id == player_attacking:
+                                    if not (player.last_hit == player_hit and player.last_hit_times >= 3):
+                                        player.score += 10
+                                        transmit_msg = player_hit
+                                        player.last_hit = player_hit
+                                        player.last_hit_times += 1
+                        else:
+                            for player in self.green_team:
+                                if player.equipment_id == player_attacking:
+                                    if not (player.last_hit == player_hit and player.last_hit_times >= 3):
+                                        player.score += 10
+                                        transmit_msg = player_hit
+                                        player.last_hit = player_hit
+                                        player.last_hit_times += 1
+
+                #update screen & transmit any hit
+                self.sort_teams()
+                self.ui.update_scores()
+                if transmit_msg != -1:
+                    self.udp_server.transmit_message(str(transmit_msg))
+                else:
+                    self.udp_server.transmit_message("0:0")
             except Exception as e:
                 print("Error in udp_handler / udp daemon: ", e)
 
@@ -56,6 +131,7 @@ class Program:
         self.red_team.sort(key=lambda x: x.score, reverse=True)
         self.green_team.sort(key=lambda x: x.score, reverse=True)
 
+    # temp for ui_testing
     def randomize_scores(self):
         for player in self.red_team:
             player.score += random.randint(0,1)
