@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
                 foundPlayer = self.main.database.getPlayer(id_value)
 
                 
-                if foundPlayer["playerName"] is not None:
+                if not foundPlayer["needsAdding"]:
                     self.codename_input.setText(foundPlayer["playerName"])
                     self.equipment_id_input.setEnabled(True)
                 elif self.codename_input.text() == "":
