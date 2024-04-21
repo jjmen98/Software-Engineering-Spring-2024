@@ -5,6 +5,7 @@ import time
 import random
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
     QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog, QScrollArea
+
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
 from PyQt6.QtCore import Qt, QSize, QTimer, QUrl
 from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
@@ -294,7 +295,7 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key.Key_F5:
-            self.gameActionUI(self.players_array)
+            self.gameActionUI()
         elif event.key() == Qt.Key.Key_F12:
             self.delete_all_players(self.players_array)
         if event.key() == Qt.Key.Key_Return:
@@ -333,33 +334,33 @@ class MainWindow(QMainWindow):
                             codename_label.setText("")
                             equipment_id_label.setText("")
                             return
-        # Start of Timer Methods
-        def update_timer_display(self):
-            self.remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
-            self.timer_label.setText(f"Time Remaining: {self.remaining_time}")
+    # Start of Timer Methods
+    def update_timer_display(self):
+        self.remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
+        self.timer_label.setText(f"Time Remaining: {self.remaining_time}")
 
-        def calculate_remaining_time(self):
-            elapsed_seconds = self.elapsed_time()
-            remaining_seconds = max(0,6*60 - elapsed_seconds)
-            minutes = int(remaining_seconds // 60)
-            seconds = int(remaining_seconds % 60)
-            if int(remaining_seconds) <= 0:
-                self.timer.stop()
-                self.timerOut()
-            return f"{minutes:01} : {seconds:02}"
+    def calculate_remaining_time(self):
+        elapsed_seconds = self.elapsed_time()
+        remaining_seconds = 0 #max(0,6*60 - elapsed_seconds)
+        minutes = int(remaining_seconds // 60)
+        seconds = int(remaining_seconds % 60)
+        if int(remaining_seconds) <= 0:
+            self.timer.stop()
+            self.timerOut()
+        return f"{minutes:01} : {seconds:02}"
 
-        def elapsed_time(self):
-            current_time = time.time()
-            elapsed_seconds = current_time - self.start_time
-            return elapsed_seconds
+    def elapsed_time(self):
+        current_time = time.time()
+        elapsed_seconds = current_time - self.start_time
+        return elapsed_seconds
 
-        #End of Timer Method
-        #Game End message after timer runs out, Call Jonathons button
-        def timerOut(self):
-            for i in range(3):
-                self.main.udp_server.transmit_message("221")
+    #End of Timer Method
+    #Game End message after timer runs out, Call Jonathons button
+    def timerOut(self):
+        for i in range(3):
+            self.main.udp_server.transmit_message("221")
 
-        #Call Jonathons Button
+    #Call Jonathons Button
 
 
     def gameActionUI(self):
@@ -378,12 +379,12 @@ class MainWindow(QMainWindow):
         # Setup for score displays
         self.redScoreBackground = QFrame()
         self.redScoreBackground.setStyleSheet("background-color: black;")
-        redScoreLayout = self.setupRedScoreLayout()
+        redScoreLayout = self.setupRedScoreLayout(self.players_array)
         self.redScoreBackground.setLayout(redScoreLayout)
 
         self.greenScoreBackground = QFrame()
         self.greenScoreBackground.setStyleSheet("background-color: black;")
-        greenScoreLayout = self.setupGreenScoreLayout()
+        greenScoreLayout = self.setupGreenScoreLayout(self.players_array)
         self.greenScoreBackground.setLayout(greenScoreLayout)
 
         scoreLayout = QHBoxLayout()
