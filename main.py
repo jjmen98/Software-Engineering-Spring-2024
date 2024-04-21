@@ -57,11 +57,16 @@ class Program:
                 # red base hit
                 if player_hit == 53 and player_attacking % 2 == 0:
                     for player in self.green_team:
-                        if not (player.last_hit == player_hit and player.last_hit_times >= 3):
-                            player.score += 100
-                            player.hit_base = True
-                            player.last_hit = player_hit
-                            player.last_hit_times += 1
+                        if player.equipment_id == player_attacking:
+                            if not (player.last_hit == player_hit and player.last_hit_times >= 3):
+                                player.score += 100
+                                player.hit_base = True
+                                if player.last_hit == player_hit:
+                                    player.last_hit = player_hit
+                                    player.last_hit_times += 1
+                                else:
+                                    player.last_hit = player_hit
+                                    player.last_hit_times = 1
                 # green base hit
                 elif player_hit == 43 and player_attacking % 2 == 1:
                     for player in self.red_team:
@@ -69,8 +74,12 @@ class Program:
                             if not (player.last_hit == player_hit and player.last_hit_times >=3):
                                 player.score += 100
                                 player.hit_base = True
-                                player.last_hit = player_hit
-                                player.last_hit_times += 1
+                                if player.last_hit == player_hit:
+                                    player.last_hit = player_hit
+                                    player.last_hit_times += 1
+                                else:
+                                    player.last_hit = player_hit
+                                    player.last_hit_times = 1
 
                 # check who got hit, even is green, odd is red,
                 else:
@@ -106,16 +115,24 @@ class Program:
                                     if not (player.last_hit == player_hit and player.last_hit_times >= 3):
                                         player.score += 10
                                         transmit_msg = player_hit
-                                        player.last_hit = player_hit
-                                        player.last_hit_times += 1
+                                        if player.last_hit == player_hit:
+                                            player.last_hit = player_hit
+                                            player.last_hit_times += 1
+                                        else:
+                                            player.last_hit = player_hit
+                                            player.last_hit_times = 1
                         else:
                             for player in self.green_team:
                                 if player.equipment_id == player_attacking:
                                     if not (player.last_hit == player_hit and player.last_hit_times >= 3):
                                         player.score += 10
                                         transmit_msg = player_hit
-                                        player.last_hit = player_hit
-                                        player.last_hit_times += 1
+                                        if player.last_hit == player_hit:
+                                            player.last_hit = player_hit
+                                            player.last_hit_times += 1
+                                        else:
+                                            player.last_hit = player_hit
+                                            player.last_hit_times = 1
 
                 #update screen & transmit any hit
                 self.sort_teams()
