@@ -342,11 +342,11 @@ class MainWindow(QMainWindow):
     # Start of Timer Methods
     def update_timer_display(self):
         self.remaining_time = self.calculate_remaining_time()  # Implement this method to calculate remaining time
-        self.timer_label.setText(f"Time Remaining: {self.remaining_time}")
+        self.timer_label.setText(f"{self.remaining_time}")
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = max(0,6*60 - elapsed_seconds)
+        remaining_seconds = max(0,1*5 - elapsed_seconds)
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
         self.update_scores()
@@ -391,10 +391,10 @@ class MainWindow(QMainWindow):
         for i in range(3):
             self.main.udp_server.transmit_message("221")
          #button return declaration
-        player_entry_button = QPushButton("Player entry screen", self.centralwidget)
+        player_entry_button = QPushButton("Return to player entry screen", self.centralwidget)
         player_entry_button.clicked.connect(self.player_entry_button)
 
-        player_entry_button.setStyleSheet("background-color: white;")
+        player_entry_button.setStyleSheet("""color: white;background-color: black;border: 2px solid white;border-radius: 5px;padding: 5px;""")
 
 
         #layout
@@ -443,7 +443,7 @@ class MainWindow(QMainWindow):
 
         # Setup for kill feed
         self.killFeedBackground = QFrame()
-        self.killFeedBackground.setStyleSheet("background-color: blue;")
+        self.killFeedBackground.setStyleSheet("background-color: black;")
         self.killFeedBackground.setContentsMargins(0, 20, 0, 20)
         killFeedLayout = QHBoxLayout(self.killFeedBackground)
         scrollArea = self.setupKillFeedLayout()
@@ -467,7 +467,7 @@ class MainWindow(QMainWindow):
 
         # Create and format the timer label
         self.timer_label = QLabel("Timer")
-        self.timer_label.setStyleSheet("background-color: white; font-size: 48px;")
+        self.timer_label.setStyleSheet("""color: white;background-color: black;font-size: 40px;""")
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align center horizontally
 
         return self.timer_label
@@ -604,9 +604,10 @@ class MainWindow(QMainWindow):
         scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
+        #scrollArea.setStyleSheet("background: black;")
         scrollAreaWidgetContents = QWidget()
         scrollArea.setStyleSheet("background: transparent;")
-        scrollAreaWidgetContents.setStyleSheet("background: transparent;")
+        scrollAreaWidgetContents.setStyleSheet("background: blue;")
         scrollArea.setWidget(scrollAreaWidgetContents)
 
 
@@ -802,7 +803,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(30, -1, -1):
+        for i in range(5, -1, -1):
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
