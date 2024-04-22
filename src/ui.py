@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, 
 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
 from PyQt6.QtCore import Qt, QSize, QTimer, QUrl
-from PyQt6.QtGui import QPixmap, QFont, QKeyEvent, QTextCursor
+from PyQt6.QtGui import QPixmap, QFont, QKeyEvent, QTextCursor, QPalette
 
 
 #include <QMediaContent>
@@ -31,6 +31,12 @@ class MainWindow(QMainWindow):
         self.red_player_labels = []
         self.green_player_labels = []
         self.killFeedText = QTextEdit()
+        self.redTeamScoreLabel = QLabel()
+        self.greenTeamScoreLabel = QLabel()
+        self.flash_timer = QTimer()
+        self.flash_timer.timeout.connect(self.flash_label)
+        self.flash_timer.setInterval(500)  # Flash duration in milliseconds
+        self.flash_state = False
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -358,6 +364,8 @@ class MainWindow(QMainWindow):
 
     def update_scores(self):
         # red team
+        redTeamScore = 0
+        greenTeamScore = 0
         current_label = 0
         if len(self.red_player_labels) > 0:
             for player in self.main.red_team:
@@ -368,6 +376,8 @@ class MainWindow(QMainWindow):
                 else:
                     self.red_player_labels[current_label][2].hide()
                 current_label += 1
+                redTeamScore += player.score
+        self.redTeamScoreLabel.setText(str(redTeamScore))
         # green team
         current_label = 0
         if len(self.green_player_labels) > 0:
@@ -379,6 +389,36 @@ class MainWindow(QMainWindow):
                 else:
                     self.green_player_labels[current_label][2].hide()
                 current_label += 1
+                greenTeamScore += player.score
+        self.greenTeamScoreLabel.setText(str(greenTeamScore))
+        if not self.flash_timer.isActive():
+            self.flash_timer.start()
+
+    def flash_label(self):
+        # Toggle the flash state
+        self.flash_state = not self.flash_state
+
+        # Determine which team's score label should flash white
+        redTeamScore = int(self.redTeamScoreLabel.text())
+        greenTeamScore = int(self.greenTeamScoreLabel.text())
+        if redTeamScore > greenTeamScore:
+            if self.flash_state:
+                self.redTeamScoreLabel.setStyleSheet("color: white; background-color: transparent; font-size: 20px;")
+                self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+            else:
+                self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+                self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+        elif greenTeamScore > redTeamScore:
+            if self.flash_state:
+                self.greenTeamScoreLabel.setStyleSheet("color: white; background-color: transparent; font-size: 20px;")
+                self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+            else:
+                self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+                self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+        else:
+            # Reset the style if scores are equal
+            self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+            self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
 
 
     def elapsed_time(self):
@@ -410,7 +450,6 @@ class MainWindow(QMainWindow):
     def gameActionUI(self):
         #####REMOVE-LATER######
         self.main.sort_teams()
-
         self.setVisible(False)
         self.countdown()
         self.setVisible(True)
@@ -450,12 +489,6 @@ class MainWindow(QMainWindow):
         scrollArea = self.setupKillFeedLayout()
         killFeedLayout.addWidget(scrollArea)
         self.gameActionLayout.addWidget(self.killFeedBackground)
-
-
-
-
-
-
 
     def timerLayout(self):
         # Timer, Can be moved to seperate method
@@ -511,7 +544,6 @@ class MainWindow(QMainWindow):
         i=0
         # Add players to the layout
         for player in self.main.red_team:
-
             playerNameLabel = QLabel(player.codename)
             playerNameLabel.setFont(userFont)
             playerNameLabel.setStyleSheet("color: red; background-color: transparent;")
@@ -533,7 +565,11 @@ class MainWindow(QMainWindow):
             baseHitLabel.hide()
             self.red_player_labels.append((playerNameLabel, playerScoreLabel, baseHitLabel))
             i+=1
-
+        self.redTeamScoreLabel.setText("0")
+        self.redTeamScoreLabel.setFont(userFont)
+        self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+        self.redTeamScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        redTeamLayout.addWidget(self.redTeamScoreLabel, 20, 8)
         return redTeamLayout
 
     ######GREEN######
@@ -595,7 +631,11 @@ class MainWindow(QMainWindow):
             baseHitLabel.hide()
             self.green_player_labels.append((playerNameLabel, playerScoreLabel, baseHitLabel))
             i+=1
-
+        self.greenTeamScoreLabel.setText("0")
+        self.greenTeamScoreLabel.setFont(userFont)
+        self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+        self.greenTeamScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        greenTeamLayout.addWidget(self.greenTeamScoreLabel, 20, 8)
         return greenTeamLayout
 
     def setupKillFeedLayout(self):
