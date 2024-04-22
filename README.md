@@ -39,7 +39,6 @@ All of these packages can be found & installed by pip
 
 >pip install python-dotenv
 
-
 ## Required Ubuntu Packages
 
 This project uses the PyQt6 QMutimedia module, which requires an Ubuntu package to run without error.
@@ -57,26 +56,23 @@ Then, run your Python3 compiler from the extracted folder containing main.py usi
 >python3 main.py
 
 ### Player Entry:
-- To add a player, input their unique player ID, a codename, and their associated equipment ID.
-- Click the Save button corresponding to the player's team.
-- If the player ID is recognized, their codename will be updated from the database; otherwise, a new entry will be created.
-- To clear player entries, either click "Delete Game" or press F12.
+- To add a player, input their unique player ID and hit Enter or click the add player button
+- If the player ID is recognized, their codename will be updated from the database; otherwise, you will be asked to input a codename and hit Enter or click the add player button.
+- Then enter the equipment ID and hit enter or click the add player button
+- To clear player entries, either click "Delete Game"
 
 ### Starting the Game:
-- Once all players and their details are entered, click "Start Game" or press F5.
+- Once all players and their details are entered, click "Start Game"
 - This will initiate a 30-second countdown before transitioning to the Game Action screen.
 
 ### Game Action:
-- This screen displays player codenames and their scores for the ongoing game.
+- This screen displays player codenames and their scores for the ongoing game, as well as Play-by-Play event list.
+- The game will play out for 6 minutes, after which a button at the bottom of the screen will appear to return to player entry.
 
 ## Known Issues
 
-There is a rouge QLayout error when displaying the Game Action screen, although it does not currently affect the functionality of the program.
+The process handling the flashing of the highest team's score causes an error when returning to player entry causing a crash. 
+A full game can still be played, however program must still be restarted. This is caused by a PyQt6 problem occurring when 
+updating a widget's stylesheet when it's not being displayed. This is a deep error that we could not fix before the deadline of 
+this project.
 
-After the Game Action screen appears, you currently must restart the program to go back to the Player Entry screen.
-
-## Future Changes
-
-1. Input Players one at a time
-2. Add Realtime Game Updates Funtionality to Game Action Screen
-4. Update Backend to handle Score & Hit tracking
