@@ -489,12 +489,6 @@ class MainWindow(QMainWindow):
         killFeedLayout.addWidget(scrollArea)
         self.gameActionLayout.addWidget(self.killFeedBackground)
 
-
-
-
-
-
-
     def timerLayout(self):
         # Timer, Can be moved to seperate method
         self.start_time = time.time()
