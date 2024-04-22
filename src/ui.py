@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = max(0,1*60 - elapsed_seconds)#FIXC
+        remaining_seconds = max(0,6*60 - elapsed_seconds)#FIXC
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
         self.update_scores()
@@ -810,7 +810,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(2, -1, -1): #FIX
+        for i in range(30, -1, -1): #FIX
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
