@@ -5,6 +5,7 @@ import random
 from src.Server import UDPServer
 from db.PlayerDB import PlayerDB
 from src.ui import ui_start
+from PyQt6.QtCore import QTimer
 
 # Program Object for program inter-references (like server to ui or Player object to ui)
 class Program:
@@ -136,7 +137,7 @@ class Program:
 
                 #update screen & transmit any hit
                 self.sort_teams()
-                self.ui.update_scores()
+                QTimer.singleShot(0, self.ui.update_scores)
                 if transmit_msg != -1:
                     self.udp_server.transmit_message(str(transmit_msg))
                 else:

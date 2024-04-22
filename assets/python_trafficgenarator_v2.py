@@ -23,7 +23,7 @@ UDPClientSocketTransmit = socket.socket(family=socket.AF_INET, type=socket.SOCK_
 
 # bind server socket
 UDPServerSocketReceive.bind(serverAddressPort)
-
+1
 # wait for start from game software
 print("")
 print("waiting for start from game_software")

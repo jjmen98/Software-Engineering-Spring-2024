@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
         self.addPlayerButton.setStyleSheet("border: 1px solid white; border-radius: 15px; color: white;")
         self.addPlayerButton.setFixedSize(100, 20)
         buttonLayout.addWidget(self.addPlayerButton)
-        self.addPlayerButton.clicked.connect(lambda: self.save_on_enter(self.players_array))
+        self.addPlayerButton.clicked.connect(lambda: self.save_on_enter(self.main.players_array))
 
         # Add button layout to outer layout
         outerLayout.addLayout(buttonLayout, stretch=0)
