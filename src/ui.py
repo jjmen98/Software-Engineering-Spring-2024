@@ -4,11 +4,11 @@ import pygame
 import time
 import random
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QFrame, QLineEdit, QPushButton, QVBoxLayout, \
-    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog, QScrollArea
+    QHBoxLayout, QMenuBar, QMenu, QSplashScreen, QMessageBox, QInputDialog, QGridLayout, QDialog, QScrollArea, QTextEdit
 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QSoundEffect, QMediaFormat
 from PyQt6.QtCore import Qt, QSize, QTimer, QUrl
-from PyQt6.QtGui import QPixmap, QFont, QKeyEvent
+from PyQt6.QtGui import QPixmap, QFont, QKeyEvent, QTextCursor
 
 
 #include <QMediaContent>
@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
         self.audioOutput = QAudioOutput()
         self.red_player_labels = []
         self.green_player_labels = []
+        self.killFeedText = QTextEdit()
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -346,7 +347,7 @@ class MainWindow(QMainWindow):
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = max(0,6*60 - elapsed_seconds)
+        remaining_seconds = max(0,1*60 - elapsed_seconds)#FIXC
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
         self.update_scores()
@@ -600,15 +601,15 @@ class MainWindow(QMainWindow):
     def setupKillFeedLayout(self):
 
         scrollArea = QScrollArea(self.centralwidget)
+        scrollArea.show()
         scrollArea.setWidgetResizable(True)
         scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        #scrollArea.setStyleSheet("background: black;")
+        # scrollArea.setStyleSheet("background: black;")
         scrollAreaWidgetContents = QWidget()
         scrollArea.setStyleSheet("background: transparent;")
         scrollAreaWidgetContents.setStyleSheet("background: blue;")
-        scrollArea.setWidget(scrollAreaWidgetContents)
 
 
         # Fonts
@@ -619,12 +620,18 @@ class MainWindow(QMainWindow):
         killFeedLayout = QGridLayout()
         scrollAreaWidgetContents.setLayout(killFeedLayout)
 
-        for i in range(1,15):
-            for j in range(1,10):
-                killFeedLayout.addWidget(QLabel(" "),i,j)
+
+        self.killFeedText.setReadOnly(True)
+        self.killFeedText.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
+        self.killFeedText.setStyleSheet("color: white; background: blue; font-size: 30px; font-weight: bold;")
+        scrollArea.setWidget(self.killFeedText)
 
 
         return scrollArea
+
+    def append_killFeed(self, text):
+        self.killFeedText.append(text)
+        self.killFeedText.ensureCursorVisible()
 
     def setupRedTeam(self):
         # Red Team Layout
@@ -803,7 +810,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(30, -1, -1):
+        for i in range(2, -1, -1): #FIX
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))

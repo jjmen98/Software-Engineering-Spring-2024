@@ -50,6 +50,8 @@ class Program:
                 player_attacking, player_hit = message.split(':')
                 player_attacking = int(player_attacking)
                 player_hit = int(player_hit)
+                player_hit_codename = "None"
+                player_atk_codename = "None"
 
                 # message to transmit (if None, don't transmit)
                 transmit_msg = -1
@@ -62,6 +64,8 @@ class Program:
                             if not (player.last_hit == player_hit and player.last_hit_times >= 3):
                                 player.score += 100
                                 player.hit_base = True
+                                player_hit_codename = "the Red Base"
+                                player_atk_codename = player.codename
                                 if player.last_hit == player_hit:
                                     player.last_hit = player_hit
                                     player.last_hit_times += 1
@@ -75,6 +79,8 @@ class Program:
                             if not (player.last_hit == player_hit and player.last_hit_times >=3):
                                 player.score += 100
                                 player.hit_base = True
+                                player_hit_codename = "the Green Base"
+                                player_atk_codename = player.codename
                                 if player.last_hit == player_hit:
                                     player.last_hit = player_hit
                                     player.last_hit_times += 1
@@ -100,11 +106,17 @@ class Program:
                         if attacking_team == "red":
                             for player in self.red_team:
                                 if player.equipment_id == player_attacking:
+                                    for player2 in self.red_team:
+                                        player_hit_codename = player2.codename
+                                    player_atk_codename = player.codename
                                     player.score -= 10
                                     transmit_msg = player_attacking
                         else:
                             for player in self.green_team:
                                 if player.equipment_id == player_attacking:
+                                    for player2 in self.green_team:
+                                        player_hit_codename = player2.codename
+                                    player_atk_codename = player.codename
                                     player.score -= 10
                                     transmit_msg = player_attacking
 
@@ -116,6 +128,9 @@ class Program:
                                     if not (player.last_hit == player_hit and player.last_hit_times >= 3):
                                         player.score += 10
                                         transmit_msg = player_hit
+                                        for player2 in self.green_team:
+                                            player_hit_codename = player2.codename
+                                        player_atk_codename = player.codename
                                         if player.last_hit == player_hit:
                                             player.last_hit = player_hit
                                             player.last_hit_times += 1
@@ -128,6 +143,9 @@ class Program:
                                     if not (player.last_hit == player_hit and player.last_hit_times >= 3):
                                         player.score += 10
                                         transmit_msg = player_hit
+                                        for player2 in self.red_team:
+                                            player_hit_codename = player2.codename
+                                        player_atk_codename = player.codename
                                         if player.last_hit == player_hit:
                                             player.last_hit = player_hit
                                             player.last_hit_times += 1
@@ -138,6 +156,7 @@ class Program:
                 #update screen & transmit any hit
                 self.sort_teams()
                 QTimer.singleShot(0, self.ui.update_scores)
+                self.ui.append_killFeed(player_atk_codename + " hit " + player_hit_codename)
                 if transmit_msg != -1:
                     self.udp_server.transmit_message(str(transmit_msg))
                 else:
