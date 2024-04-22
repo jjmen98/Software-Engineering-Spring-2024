@@ -230,7 +230,7 @@ class Program:
             return False
 
         # check through team list to find and remove given player_id (removes player from both teams if they are somehow in both teams)
-        player_removed: bool = False  # boolean to return to detemine if player was removed (true) or player was not removed/not in teams (false)
+        player_removed: bool = False  # boolean to return to determine if player was removed (true) or player was not removed/not in teams (false)
         if check_red_team:
             for member in self.red_team:
                 if player_id == member.player_id:
