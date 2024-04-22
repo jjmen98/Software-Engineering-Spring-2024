@@ -39,6 +39,15 @@ All of these packages can be found & installed by pip
 
 >pip install python-dotenv
 
+
+## Required Ubuntu Packages
+
+This project uses the PyQt6 QMutimedia module, which requires an Ubuntu package to run without error.
+This package is the libva-dev package, a Video Acceleration API for Linux. You can install the required package with 
+the following command
+
+>sudo apt-get install -y libva-dev
+
 ## Running the Program
 
 To run this project, download & extract the main branch to a directory on your system
