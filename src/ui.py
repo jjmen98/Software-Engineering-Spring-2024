@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
 
         # check if exsisting connection
         if self.media_status_connected:
-            self.player.mediaStatusChanged.disconnect(self.update_position())
+            self.player.mediaStatusChanged.disconnect(self.update_position)
 
         self.player.mediaStatusChanged.connect(self.update_position)
         self.player.setSource(QUrl.fromLocalFile(filepath))
