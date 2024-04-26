@@ -448,8 +448,6 @@ class MainWindow(QMainWindow):
 
 
     def gameActionUI(self):
-        #####REMOVE-LATER######
-        self.main.sort_teams()
         self.setVisible(False)
         self.countdown()
         self.setVisible(True)
