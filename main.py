@@ -15,6 +15,7 @@ class Program:
         self.udp_server = UDPServer(("127.0.0.1", 7500), ("127.0.0.1", 7501))  # set server sockets transmit over 7500, receive over 7501
         self.ui = None # set bu ui.py
 
+
         # setup listening thread for udp socket
         try:
             self.udp_thread = threading.Thread(target=self.udp_handler, daemon=True)
@@ -28,7 +29,10 @@ class Program:
         self.green_team = []
         print("Starting UI")
         # start ui (frontend)
-        ui_start(self)
+        if ui_start(self):
+            self.ui = ui_start()
+        else:
+            quit(0)
 
     # Player object to hold player_id & equipment_id together
     class Player:
@@ -242,7 +246,6 @@ class Program:
                 if player_id == member.player_id:
                     self.green_team.remove(member)
                     player_removed = True
-
         return player_removed
 
     # function to clear team_lists

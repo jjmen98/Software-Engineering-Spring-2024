@@ -71,7 +71,7 @@ while True:
 	print('')
 	counter = counter + 1
 	if received_data == '221':
-		break
+		exit()
 	time.sleep(random.randint(1, 3))
 	
 print("program complete")

@@ -37,6 +37,8 @@ class MainWindow(QMainWindow):
         self.flash_timer.timeout.connect(self.flash_label)
         self.flash_timer.setInterval(500)  # Flash duration in milliseconds
         self.flash_state = False
+        self.media_status_connected = False
+        self.scoresExist = False
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -49,10 +51,18 @@ class MainWindow(QMainWindow):
         if trackNo == 5:
             trackNo = 4
         track = "Track0" + str(trackNo) + ".wav"
+        print("play_music")
         print("Playing " + track)
         filepath = "assets/tracks/" + track
-        self.player.mediaStatusChanged.connect(self.update_position)
+
+        # Check if there's an existing connection before disconnecting
+        if self.media_status_connected:
+            self.player.mediaStatusChanged.disconnect(self.update_position)
+
         self.player.setSource(QUrl.fromLocalFile(filepath))
+        self.player.mediaStatusChanged.connect(self.update_position)
+        self.media_status_connected = True
+
 
     def setupUI(self):
         self.centralwidget = QWidget(self)
@@ -163,8 +173,12 @@ class MainWindow(QMainWindow):
         # Add the player to the appropriate layout based on equipment ID
         for player in self.main.red_team:
             self.add_player_to_red_team(player)
+            player.score = 0
+            player.hit_base = False
         for player in self.main.green_team:
             self.add_player_to_green_team(player)
+            player.score = 0
+            player.hit_base = False
 
 
 
@@ -220,7 +234,7 @@ class MainWindow(QMainWindow):
 
                         #create Player Object
                         player = self.main.Player(id_text, self.codename_input.text(), equipment_id_value)
-                        self.main.udp_server.transmit_message(equipment_id_text)
+                        #self.main.udp_server.transmit_message(equipment_id_text)
 
                         # Add the player to the appropriate layout based on equipment ID
                         if equipment_id_value % 2 == 1:
@@ -353,12 +367,11 @@ class MainWindow(QMainWindow):
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = max(0,6*60 - elapsed_seconds)#FIXC
+        remaining_seconds = max(0,1*30 - elapsed_seconds)#FIXC
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
-        # self.update_scores()
+        self.update_scores()
         if int(remaining_seconds) <= 0:
-            self.timer.stop()
             self.timerOut()
         return f"{minutes:01} : {seconds:02}"
 
@@ -377,7 +390,14 @@ class MainWindow(QMainWindow):
                     self.red_player_labels[current_label][2].hide()
                 current_label += 1
                 redTeamScore += player.score
-        self.redTeamScoreLabel.setText(str(redTeamScore))
+        if not hasattr(self, 'redTeamScoreLabel') or not isinstance(self.redTeamScoreLabel, QLabel):
+            self.redTeamScoreLabel = QLabel()
+            self.redTeamScoreLabel.setFont(QFont("Arial", 8))
+            self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+            self.redTeamScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.redTeamScoreLabel.setText(str(redTeamScore))
+        else:
+            self.redTeamScoreLabel.setText(str(redTeamScore))
         # green team
         current_label = 0
         if len(self.green_player_labels) > 0:
@@ -399,26 +419,27 @@ class MainWindow(QMainWindow):
         self.flash_state = not self.flash_state
 
         # Determine which team's score label should flash white
-        redTeamScore = int(self.redTeamScoreLabel.text())
-        greenTeamScore = int(self.greenTeamScoreLabel.text())
-        if redTeamScore > greenTeamScore:
-            if self.flash_state:
-                self.redTeamScoreLabel.setStyleSheet("color: white; background-color: transparent; font-size: 20px;")
-                self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+        if self.scoresExist:
+            redTeamScore = int(self.redTeamScoreLabel.text())
+            greenTeamScore = int(self.greenTeamScoreLabel.text())
+            if redTeamScore > greenTeamScore:
+                if self.flash_state:
+                    self.redTeamScoreLabel.setStyleSheet("color: white; background-color: transparent; font-size: 20px;")
+                    self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+                else:
+                    self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+                    self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+            elif greenTeamScore > redTeamScore:
+                if self.flash_state:
+                    self.greenTeamScoreLabel.setStyleSheet("color: white; background-color: transparent; font-size: 20px;")
+                    self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+                else:
+                    self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
+                    self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
             else:
+                # Reset the style if scores are equal
                 self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
                 self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
-        elif greenTeamScore > redTeamScore:
-            if self.flash_state:
-                self.greenTeamScoreLabel.setStyleSheet("color: white; background-color: transparent; font-size: 20px;")
-                self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
-            else:
-                self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
-                self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
-        else:
-            # Reset the style if scores are equal
-            self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
-            self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
 
 
     def elapsed_time(self):
@@ -429,25 +450,34 @@ class MainWindow(QMainWindow):
     #End of Timer Method
     #Game End message after timer runs out, Call Jonathons button
     def timerOut(self):
+        self.timer.stop()
+        self.flash_timer.stop()
+        self.scoresExist = False
         for i in range(3):
             self.main.udp_server.transmit_message("221")
          #button return declaration
         player_entry_button = QPushButton("Return to player entry screen", self.centralwidget)
         player_entry_button.clicked.connect(self.player_entry_button)
-
         player_entry_button.setStyleSheet("""color: white;background-color: black;border: 2px solid white;border-radius: 5px;padding: 5px;""")
-
-
         #layout
         self.gameActionLayout.addWidget(player_entry_button)
 
 
     def player_entry_button(self):
+        self.red_player_labels.clear()
+        self.green_player_labels.clear()
+        self.player.stop()
         self.setupUI()
 
 
 
     def gameActionUI(self):
+        for player in self.main.red_team:
+            print("Transmitting Red Team Player")
+            self.main.udp_server.transmit_message(str(player.equipment_id))
+        for player in self.main.green_team:
+            print("Transmitting Green Team Player")
+            self.main.udp_server.transmit_message(str(player.equipment_id))
         #####REMOVE-LATER######
         self.main.sort_teams()
         self.setVisible(False)
@@ -456,39 +486,45 @@ class MainWindow(QMainWindow):
         # Clear the current central widget
         self.takeCentralWidget()
         self.play_music()
-
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
         self.gameActionLayout = QVBoxLayout(self.centralwidget)
-
         # Add Timer Layout
         self.gameActionLayout.addWidget(self.timerLayout())
-
         # Setup for score displays
         self.redScoreBackground = QFrame()
         self.redScoreBackground.setStyleSheet("background-color: black;")
         self.redScoreLayout = self.setupRedScoreLayout()
         self.redScoreBackground.setLayout(self.redScoreLayout)
-
         self.greenScoreBackground = QFrame()
         self.greenScoreBackground.setStyleSheet("background-color: black;")
         self.greenScoreLayout = self.setupGreenScoreLayout()
         self.greenScoreBackground.setLayout(self.greenScoreLayout)
-
         self.scoreLayout = QHBoxLayout()
         self.scoreLayout.addWidget(self.redScoreBackground)
         self.scoreLayout.addWidget(self.greenScoreBackground)
         self.gameActionLayout.addLayout(self.scoreLayout)
+        '''
+        if not hasattr(self, 'killFeedBackground') or not isinstance(self.killFeedBackground, QFrame):
+            self.killFeedBackground = QFrame()
+            self.killFeedBackground.setStyleSheet("background-color: black;")
+            self.killFeedBackground.setContentsMargins(0, 20, 0, 20)
+            killFeedLayout = QHBoxLayout(self.killFeedBackground)
+            scrollArea = self.setupKillFeedLayout()
+            killFeedLayout.addWidget(scrollArea)
+            self.gameActionLayout.addWidget(self.killFeedBackground)
+        '''
 
-        # Setup for kill feed
+
         self.killFeedBackground = QFrame()
-        self.killFeedBackground.setStyleSheet("background-color: black;")
+        self.killFeedBackground.setStyleSheet("background-color: blue;")
         self.killFeedBackground.setContentsMargins(0, 20, 0, 20)
         killFeedLayout = QHBoxLayout(self.killFeedBackground)
         scrollArea = self.setupKillFeedLayout()
         killFeedLayout.addWidget(scrollArea)
         self.gameActionLayout.addWidget(self.killFeedBackground)
+        self.scoresExist = True
 
     def timerLayout(self):
         # Timer, Can be moved to seperate method
@@ -565,11 +601,22 @@ class MainWindow(QMainWindow):
             baseHitLabel.hide()
             self.red_player_labels.append((playerNameLabel, playerScoreLabel, baseHitLabel))
             i+=1
-        self.redTeamScoreLabel.setText("0")
-        self.redTeamScoreLabel.setFont(userFont)
+
+        if not hasattr(self, 'redTeamScoreLabel') or not isinstance(self.redTeamScoreLabel, QLabel):
+            self.redTeamScoreLabel = QLabel()
+            self.redTeamScoreLabel.setFont(QFont("Arial", 8))
+            self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
+            self.redTeamScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.redTeamLabel.setText("0")
+            redTeamLayout.addWidget(self.redTeamScoreLabel, 20, 8)
+            return redTeamLayout
+
+        self.redTeamScoreLabel = QLabel()
+        self.redTeamScoreLabel.setFont(QFont("Arial", 8))
         self.redTeamScoreLabel.setStyleSheet("color: red; background-color: transparent; font-size: 20px;")
         self.redTeamScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         redTeamLayout.addWidget(self.redTeamScoreLabel, 20, 8)
+        self.redTeamScoreLabel.setText("0")
         return redTeamLayout
 
     ######GREEN######
@@ -609,7 +656,6 @@ class MainWindow(QMainWindow):
         # Add players to the layout
         i=0
         for player in self.main.green_team:
-
             playerNameLabel = QLabel(player.codename)  # Accessing the 'codename' key
             playerNameLabel.setFont(userFont)
             playerNameLabel.setStyleSheet("color: green; background-color: transparent;")
@@ -624,48 +670,48 @@ class MainWindow(QMainWindow):
 
             baseHitLabel = QLabel()  # Replace with actual score retrieval
             baseHitLabel.setFont(userFont)
-            baseHitLabel.setStyleSheet("color: red; background-color: transparent;")
+            baseHitLabel.setStyleSheet("color: green; background-color: transparent;")
             baseHitLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
             baseHitLabel.setPixmap(QPixmap("assets/splashscreen_game_sounds/pictures/greenb.png").scaled(10, 16))
             greenTeamLayout.addWidget(baseHitLabel, i + 3, 1)
             baseHitLabel.hide()
             self.green_player_labels.append((playerNameLabel, playerScoreLabel, baseHitLabel))
             i+=1
-        self.greenTeamScoreLabel.setText("0")
-        self.greenTeamScoreLabel.setFont(userFont)
+
+        self.greenTeamScoreLabel = QLabel()
+        self.greenTeamScoreLabel.setFont(QFont("Arial", 8))
         self.greenTeamScoreLabel.setStyleSheet("color: green; background-color: transparent; font-size: 20px;")
         self.greenTeamScoreLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         greenTeamLayout.addWidget(self.greenTeamScoreLabel, 20, 8)
+        self.greenTeamScoreLabel.setText("0")
         return greenTeamLayout
 
     def setupKillFeedLayout(self):
-
         scrollArea = QScrollArea(self.centralwidget)
         scrollArea.show()
         scrollArea.setWidgetResizable(True)
         scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        # scrollArea.setStyleSheet("background: black;")
-        scrollAreaWidgetContents = QWidget()
         scrollArea.setStyleSheet("background: transparent;")
-        scrollAreaWidgetContents.setStyleSheet("background: blue;")
-
-
-        # Fonts
-        font = QFont("Arial", 10, QFont.Weight.Bold)
-        userFont = QFont("Arial", 8)
-        titleFont = QFont("Arial", 14, QFont.Weight.Bold)
 
         killFeedLayout = QGridLayout()
+        scrollAreaWidgetContents = QWidget()
         scrollAreaWidgetContents.setLayout(killFeedLayout)
-
-
+        self.killFeedText = QTextEdit()
         self.killFeedText.setReadOnly(True)
         self.killFeedText.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         self.killFeedText.setStyleSheet("color: white; background: blue; font-size: 30px; font-weight: bold;")
         scrollArea.setWidget(self.killFeedText)
 
+        if not hasattr(self, 'killFeedText') or not isinstance(self.killFeedText, QTextEdit):
+            print("Creating new QTextEdit")
+            self.killFeedText = QTextEdit()
+            self.killFeedText.setReadOnly(True)
+            self.killFeedText.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
+            self.killFeedText.setStyleSheet("color: white; background: blue; font-size: 30px; font-weight: bold;")
+            scrollArea.setWidget(self.killFeedText)
+        else:
+            print("Using existing QTextEdit")
 
         return scrollArea
 
@@ -850,7 +896,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(30, -1, -1): #FIX
+        for i in range(2, -1, -1): #FIX
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
@@ -883,84 +929,6 @@ class MainWindow(QMainWindow):
         self.main.udp_server.transmit_message("202")
         return 1
 
-    def save_players_ui(self, team_color):
-        try:
-            if team_color == "red":
-                for id_input, codename_input, equipment_id_input in self.players_red:
-                    player_id_text = id_input.text().strip()
-                    if player_id_text:
-                        try:
-                            db_search = self.main.database.getPlayer(int(player_id_text))
-                            if not db_search['needsAdding']:
-                                codename_input.setText(str(db_search['playerName']))
-                                equipment_id_input.setFocus()  # Set focus to equipment ID input
-                            else:
-                                dialog = QInputDialog(self)
-                                dialog.setInputMode(QInputDialog.InputMode.TextInput)
-                                dialog.setLabelText("Enter Codename:")
-                                dialog.setWindowTitle("Player Information")
-                                dialog.setOkButtonText("Next")
-                                dialog.setCancelButtonText("Cancel")
-                                dialog.setStyleSheet("color: white;")
-                                result = dialog.exec()
-                                if result == QDialog.DialogCode.Accepted:
-                                    codename = dialog.textValue()
-                                    dialog.setLabelText("Enter Equipment ID:")
-                                    result = dialog.exec()
-                                    if result == QDialog.DialogCode.Accepted:
-                                        equipment_id = dialog.textValue()
-                                        codename_input.setText(codename)
-                                        equipment_id_input.setText(equipment_id)
-                                        # add player to database
-                                        self.main.database.addPlayer(int(player_id_text), codename)
-                            player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(),
-                                                    int(equipment_id_input.text().strip()))
-                            added = self.main.add_team_player(player, "red")
-                            if not added:
-                                print("save_players_ui: Player already added")
-                            equipment_id = equipment_id_input.text().strip()
-                            self.main.udp_server.transmit_message(equipment_id)
-                        except ValueError:
-                            print("Player ID must be an integer.")
-            elif team_color == "green":
-                for id_input, codename_input, equipment_id_input in self.players_green:
-                    player_id_text = id_input.text().strip()
-                    if player_id_text:
-                        try:
-                            db_search = self.main.database.getPlayer(int(player_id_text))
-                            if not db_search['needsAdding']:
-                                codename_input.setText(str(db_search['playerName']))
-                                equipment_id_input.setFocus()  # Set focus to equipment ID input
-                            else:
-                                dialog = QInputDialog(self)
-                                dialog.setInputMode(QInputDialog.InputMode.TextInput)
-                                dialog.setLabelText("Enter Codename:")
-                                dialog.setWindowTitle("Player Information")
-                                dialog.setOkButtonText("Next")
-                                dialog.setCancelButtonText("Cancel")
-                                dialog.setStyleSheet("color: white;")
-                                result = dialog.exec()
-                                if result == QDialog.DialogCode.Accepted:
-                                    codename = dialog.textValue()
-                                    dialog.setLabelText("Enter Equipment ID:")
-                                    result = dialog.exec()
-                                    if result == QDialog.DialogCode.Accepted:
-                                        equipment_id = dialog.textValue()
-                                        codename_input.setText(codename)
-                                        equipment_id_input.setText(equipment_id)
-                                        # add player to database
-                                        self.main.database.addPlayer(int(player_id_text), codename)
-                            player = self.main.Player(int(id_input.text().strip()), codename_input.text().strip(),
-                                                    int(equipment_id_input.text().strip()))
-                            added = self.main.add_team_player(player, "green")
-                            if not added:
-                                print("save_players_ui: Player already added")
-                            equipment_id = equipment_id_input.text().strip()
-                            self.main.udp_server.transmit_message(equipment_id)
-                        except ValueError:
-                            print("Player ID must be an integer.")
-        except Exception as e:
-            print("Error occurred while saving data to Supabase:", e)
 
 
 def ui_start(backend):
@@ -990,4 +958,3 @@ def ui_start(backend):
     mainWindow.resize(1500, 1050)
     mainWindow.show()
     sys.exit(app.exec())
-
