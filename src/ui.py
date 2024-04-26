@@ -37,6 +37,7 @@ class MainWindow(QMainWindow):
         self.flash_timer.timeout.connect(self.flash_label)
         self.flash_timer.setInterval(500)  # Flash duration in milliseconds
         self.flash_state = False
+        self.media_status_connected = False
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -51,8 +52,15 @@ class MainWindow(QMainWindow):
         track = "Track0" + str(trackNo) + ".wav"
         print("Playing " + track)
         filepath = "assets/tracks/" + track
+
+
+        # check if exsisting connection
+        if self.media_status_connected:
+            self.player.mediaStatusChanged.disconnect(self.update_position())
+
         self.player.mediaStatusChanged.connect(self.update_position)
         self.player.setSource(QUrl.fromLocalFile(filepath))
+        self.media_status_connected = True
 
     def setupUI(self):
         self.centralwidget = QWidget(self)
