@@ -356,7 +356,6 @@ class MainWindow(QMainWindow):
         remaining_seconds = max(0,6*60 - elapsed_seconds)#FIXC
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
-        self.update_scores()
         if int(remaining_seconds) <= 0:
             self.timer.stop()
             self.timerOut()
@@ -448,8 +447,6 @@ class MainWindow(QMainWindow):
 
 
     def gameActionUI(self):
-        #####REMOVE-LATER######
-        self.main.sort_teams()
         self.setVisible(False)
         self.countdown()
         self.setVisible(True)
