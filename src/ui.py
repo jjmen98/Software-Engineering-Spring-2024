@@ -39,6 +39,7 @@ class MainWindow(QMainWindow):
         self.flash_state = False
         self.media_status_connected = False
         self.scoresExist = False
+        self.gameActive = False
 
     def update_position(self, status):
         if status == QMediaPlayer.MediaStatus.LoadedMedia:
@@ -367,7 +368,7 @@ class MainWindow(QMainWindow):
 
     def calculate_remaining_time(self):
         elapsed_seconds = self.elapsed_time()
-        remaining_seconds = max(0,1*30 - elapsed_seconds)#FIXC
+        remaining_seconds = max(0,6*60 - elapsed_seconds)#FIXC
         minutes = int(remaining_seconds // 60)
         seconds = int(remaining_seconds % 60)
         self.update_scores()
@@ -453,6 +454,7 @@ class MainWindow(QMainWindow):
         self.timer.stop()
         self.flash_timer.stop()
         self.scoresExist = False
+        self.gameActive = False
         for i in range(3):
             self.main.udp_server.transmit_message("221")
          #button return declaration
@@ -485,7 +487,7 @@ class MainWindow(QMainWindow):
         self.setVisible(True)
         # Clear the current central widget
         self.takeCentralWidget()
-        self.play_music()
+        #self.play_music()
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
@@ -525,6 +527,7 @@ class MainWindow(QMainWindow):
         killFeedLayout.addWidget(scrollArea)
         self.gameActionLayout.addWidget(self.killFeedBackground)
         self.scoresExist = True
+        self.gameActive = True
 
     def timerLayout(self):
         # Timer, Can be moved to seperate method
@@ -697,11 +700,6 @@ class MainWindow(QMainWindow):
         killFeedLayout = QGridLayout()
         scrollAreaWidgetContents = QWidget()
         scrollAreaWidgetContents.setLayout(killFeedLayout)
-        self.killFeedText = QTextEdit()
-        self.killFeedText.setReadOnly(True)
-        self.killFeedText.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
-        self.killFeedText.setStyleSheet("color: white; background: blue; font-size: 30px; font-weight: bold;")
-        scrollArea.setWidget(self.killFeedText)
 
         if not hasattr(self, 'killFeedText') or not isinstance(self.killFeedText, QTextEdit):
             print("Creating new QTextEdit")
@@ -710,14 +708,21 @@ class MainWindow(QMainWindow):
             self.killFeedText.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
             self.killFeedText.setStyleSheet("color: white; background: blue; font-size: 30px; font-weight: bold;")
             scrollArea.setWidget(self.killFeedText)
+            return scrollArea
         else:
-            print("Using existing QTextEdit")
+            print("Using existing QTextEdit like the lying bitch I am")
 
+        self.killFeedText = QTextEdit()
+        self.killFeedText.setReadOnly(True)
+        self.killFeedText.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
+        self.killFeedText.setStyleSheet("color: white; background: blue; font-size: 30px; font-weight: bold;")
+        scrollArea.setWidget(self.killFeedText)
         return scrollArea
 
     def append_killFeed(self, text):
-        self.killFeedText.append(text)
-        self.killFeedText.ensureCursorVisible()
+        if self.gameActive:
+            self.killFeedText.append(text)
+            self.killFeedText.ensureCursorVisible()
 
     def setupRedTeam(self):
         # Red Team Layout
@@ -896,7 +901,7 @@ class MainWindow(QMainWindow):
         splash_display = pygame.display.set_mode((1000, 700))  # width height
         # set splashscreen image and scale to window
         pygame.display.set_caption('Photon Tag - Team 16')
-        for i in range(2, -1, -1): #FIX
+        for i in range(30, -1, -1): #FIX
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
