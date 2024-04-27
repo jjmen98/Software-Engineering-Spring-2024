@@ -710,7 +710,7 @@ class MainWindow(QMainWindow):
             scrollArea.setWidget(self.killFeedText)
             return scrollArea
         else:
-            print("Using existing QTextEdit like the lying bitch I am")
+            print("Using existing QTextEdit")
 
         self.killFeedText = QTextEdit()
         self.killFeedText.setReadOnly(True)
