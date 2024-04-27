@@ -487,7 +487,7 @@ class MainWindow(QMainWindow):
         self.setVisible(True)
         # Clear the current central widget
         self.takeCentralWidget()
-        #self.play_music()
+        self.play_music()
         # Create a new central widget for the game action screen
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
