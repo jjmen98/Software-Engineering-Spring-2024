@@ -905,7 +905,7 @@ class MainWindow(QMainWindow):
             filename = 'assets/splashscreen_game_sounds/countdown_images/{}.tif'.format(i)
             countdown_img = pygame.image.load(filename)
             countdown_img = pygame.transform.scale(countdown_img, (1000, 700))
-            if i == 15:
+            if i == 16:
                 trackNo = random.randint(1, 8)
                 if trackNo == 5:
                     trackNo = 4
